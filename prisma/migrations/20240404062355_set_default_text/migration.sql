@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Qrcode" ALTER COLUMN "type" SET DEFAULT 'TEXT';

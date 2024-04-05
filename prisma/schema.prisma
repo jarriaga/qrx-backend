@@ -1,0 +1,59 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Quser {
+  id        String   @id @default(uuid())
+  firstname String?
+  lastname  String?
+  phone     String?
+  email     String?
+  purchased Boolean  @default(false)
+  createdAt DateTime
+  updatedAt DateTime
+  smsCode   String?
+  Qrcodes   Qrcode[]
+  Designs   Design[]
+}
+
+model Design {
+  id        String   @id @default(uuid())
+  name      String
+  html      String?
+  createdAt DateTime
+  updatedAt DateTime
+  Quser     Quser?   @relation(fields: [quserId], references: [id])
+  quserId   String?
+}
+
+model Qrcode {
+  id        String   @id @default(uuid())
+  quser     Quser    @relation(fields: [quserId], references: [id])
+  quserId   String
+  type      QrType   @default(TEXT)
+  html      String?
+  pinCode   String   @unique
+  createdAt DateTime
+  updatedAt DateTime
+}
+
+enum QrType {
+  REDIRECTION
+  CONTACT
+  PAYPAL
+  CASHAPP
+  TEXT
+  GIFT
+  VIDEO
+}
