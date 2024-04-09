@@ -27,16 +27,20 @@ model Quser {
   Designs   Design[]
 }
 
+//multiple design per Quser, it can be stored and assigned to the QR tshirt 
+//you can have your own messages or design ready to asign
 model Design {
   id        String   @id @default(uuid())
   name      String
   html      String?
+  type      QrType   @default(TEXT)
   createdAt DateTime
   updatedAt DateTime
   Quser     Quser?   @relation(fields: [quserId], references: [id])
   quserId   String?
 }
 
+//current T-shirt QR code
 model Qrcode {
   id        String   @id @default(uuid())
   quser     Quser    @relation(fields: [quserId], references: [id])
