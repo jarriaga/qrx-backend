@@ -1,6 +1,15 @@
 import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 async function main() {
+
+    // const qrcode = await prisma.qrcode.create({
+    //     data: {
+    //         pinCode: '1234',
+    //     }
+
+    // });
+
+
     // const alice = await prisma.quser.upsert({
     //     where: { email: 'alice@prisma.io' },
     //     update: {},

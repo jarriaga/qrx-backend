@@ -19,7 +19,6 @@ model Quser {
   lastname  String?
   phone     String?
   email     String?
-  purchased Boolean  @default(false)
   createdAt DateTime
   updatedAt DateTime
   smsCode   String?
@@ -43,11 +42,12 @@ model Design {
 //current T-shirt QR code
 model Qrcode {
   id        String   @id @default(uuid())
-  quser     Quser    @relation(fields: [quserId], references: [id])
-  quserId   String
+  quser     Quser?   @relation(fields: [quserId], references: [id])
+  quserId   String?
   type      QrType   @default(TEXT)
   html      String?
-  pinCode   String   @unique
+  pinCode   String   @unique //unique pin code for the qr code and web page for message
+  purchased Boolean  @default(false) //if the tshirt has been purchased
   createdAt DateTime
   updatedAt DateTime
 }
