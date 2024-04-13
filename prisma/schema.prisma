@@ -19,8 +19,8 @@ model Quser {
   lastname  String?
   phone     String?
   email     String?
-  createdAt DateTime
-  updatedAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   smsCode   String?
   Qrcodes   Qrcode[]
   Designs   Design[]
@@ -33,23 +33,24 @@ model Design {
   name      String
   html      String?
   type      QrType   @default(TEXT)
-  createdAt DateTime
-  updatedAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   Quser     Quser?   @relation(fields: [quserId], references: [id])
   quserId   String?
 }
 
 //current T-shirt QR code
 model Qrcode {
-  id        String   @id @default(uuid())
-  quser     Quser?   @relation(fields: [quserId], references: [id])
-  quserId   String?
-  type      QrType   @default(TEXT)
-  html      String?
-  pinCode   String   @unique //unique pin code for the qr code and web page for message
-  purchased Boolean  @default(false) //if the tshirt has been purchased
-  createdAt DateTime
-  updatedAt DateTime
+  id             String   @id @default(uuid())
+  shirtId        String   @unique
+  quser          Quser?   @relation(fields: [quserId], references: [id])
+  quserId        String?
+  type           QrType   @default(TEXT)
+  html           String?
+  activationCode String   @unique //unique pin code for the qr code and web page for message
+  purchased      Boolean  @default(false) //if the tshirt has been purchased
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
 enum QrType {
