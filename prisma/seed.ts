@@ -25,6 +25,30 @@ async function main() {
     },
   });
 
+  await prisma.qrcode.upsert({
+    where: { id: '4d6f1979-67c3-4860-b074-3a8ee8b5dfbb' },
+    update: {},
+    create: {
+      id: '4d6f1979-67c3-4860-b074-3a8ee8b5dfbb',
+      shirtId: 'XSE22AS',
+      urlCode: 'http://localhost:5173/XSE22BB',
+      activationCode: 'AA3-822-ABB',
+      type: QrType.TEXT,
+    },
+  });
+
+  await prisma.qrcode.upsert({
+    where: { id: '4d6f1979-67c3-4860-b074-3a8ee8b5dfcc' },
+    update: {},
+    create: {
+      id: '4d6f1979-67c3-4860-b074-3a8ee8b5dfcc',
+      shirtId: 'XSE22AS',
+      urlCode: 'http://localhost:5173/XSE22CC',
+      activationCode: 'AA3-822-ACC',
+      type: QrType.TEXT,
+    },
+  });
+
   // const qrcode = await prisma.qrcode.create({
   //     data: {
   //         pinCode: '1234',
