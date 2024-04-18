@@ -7,6 +7,7 @@ async function main() {
     create: {
       id: '2d6f1979-67c3-4860-b074-3a8ee8b5eea3',
       shirtId: 'BDAEX223',
+      urlCode: 'http://localhost:5173/BDAEX223',
       activationCode: 'AA3-322-1ZX',
       type: QrType.TEXT,
     },
@@ -18,6 +19,7 @@ async function main() {
     create: {
       id: '4d6f1979-67c3-4860-b074-3a8ee8b5dfc2',
       shirtId: 'XSE22AS',
+      urlCode: 'http://localhost:5173/XSE22AS',
       activationCode: 'AA3-822-AXF',
       type: QrType.TEXT,
     },

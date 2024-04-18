@@ -43,6 +43,7 @@ model Design {
 model Qrcode {
   id             String   @id @default(uuid())
   shirtId        String   @unique
+  urlCode        String?
   quser          Quser?   @relation(fields: [quserId], references: [id])
   quserId        String?
   type           QrType   @default(TEXT)
