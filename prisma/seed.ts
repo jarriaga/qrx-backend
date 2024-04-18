@@ -30,7 +30,7 @@ async function main() {
     update: {},
     create: {
       id: '4d6f1979-67c3-4860-b074-3a8ee8b5dfbb',
-      shirtId: 'XSE22AS',
+      shirtId: 'XSE22BB',
       urlCode: 'http://localhost:5173/XSE22BB',
       activationCode: 'AA3-822-ABB',
       type: QrType.TEXT,
@@ -42,7 +42,7 @@ async function main() {
     update: {},
     create: {
       id: '4d6f1979-67c3-4860-b074-3a8ee8b5dfcc',
-      shirtId: 'XSE22AS',
+      shirtId: 'XSE22CC',
       urlCode: 'http://localhost:5173/XSE22CC',
       activationCode: 'AA3-822-ACC',
       type: QrType.TEXT,
