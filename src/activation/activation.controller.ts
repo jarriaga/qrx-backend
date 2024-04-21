@@ -6,12 +6,14 @@ import { ValidateActivationCodeDto } from './dto/validateActivationCode.dto';
 @ApiTags('activation')
 @Controller('activation')
 export class ActivationController {
+  constructor(private readonly activationService: ActivationService) {}
 
-    constructor(private readonly activationService: ActivationService) { }
-
-    @Post("/validate")
-    async validateActivationCode(@Body() validateActivationCodeDto: ValidateActivationCodeDto) {
-        return this.activationService.validateActivationCode(validateActivationCodeDto.activationCode, validateActivationCodeDto.tshirtId);
-    }
-
+  @Post('/validate')
+  async validateActivationCode(
+    @Body() validateActivationCodeDto: ValidateActivationCodeDto,
+  ) {
+    return this.activationService.validateActivationCode(
+      validateActivationCodeDto,
+    );
+  }
 }
