@@ -2,10 +2,12 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { QuserService } from './quser.service';
 import { CreateQuserDto } from './dto/create-quser.dto';
 import { UpdateQuserDto } from './dto/update-quser.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('quser')
 @Controller('quser')
 export class QuserController {
-  constructor(private readonly quserService: QuserService) {}
+  constructor(private readonly quserService: QuserService) { }
 
   @Post()
   create(@Body() createQuserDto: CreateQuserDto) {
