@@ -1,11 +1,12 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ValidateActivationCodeDto } from './dto/validateActivationCode.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { iif } from 'rxjs';
+import { ActivationDto } from './dto/activation.dto';
 
 @Injectable()
 export class ActivationService {
-    logger = new Logger('ActivationService');
+    private readonly logger = new Logger(ActivationService.name);
+
     constructor(private readonly prismaService: PrismaService) {}
 
     async validateActivationCode(dto: ValidateActivationCodeDto) {
@@ -29,6 +30,44 @@ export class ActivationService {
 
         this.logger.debug(qrcode);
 
-        return `Activation code ${activationCode} is valid for tshirt ${shirtId}`;
+        return { message: 'valid' };
+    }
+
+    async activateQrCodeAndCreateQuser(activationDto: ActivationDto) {
+        const { activationCode, shirtId, email, password } = activationDto;
+        const qrcode = await this.prismaService.qrcode.findFirst({
+            where: {
+                activationCode,
+                shirtId,
+                purchased: true,
+            },
+        });
+
+        if (!qrcode) {
+            this.logger.error(
+                `tshirt ${shirtId} with activation code ${activationCode} not found or not purchased yet.`,
+            );
+            throw new NotFoundException(
+                `tshirt ${shirtId} with activation code ${activationCode} not found or not purchased yet.`,
+            );
+        }
+
+        this.logger.debug(qrcode);
+
+        const user = await this.prismaService.user.create({
+            data: {
+                email,
+                password,
+                Qrcodes: {
+                    connect: {
+                        id: qrcode.id,
+                    },
+                },
+            },
+        });
+
+        this.logger.debug(user);
+
+        return { message: 'activated' };
     }
 }
