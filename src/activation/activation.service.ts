@@ -1,7 +1,13 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+    Injectable,
+    InternalServerErrorException,
+    Logger,
+    NotFoundException,
+} from '@nestjs/common';
 import { ValidateActivationCodeDto } from './dto/validateActivationCode.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ActivationDto } from './dto/activation.dto';
+import { ApiInternalServerErrorResponse } from '@nestjs/swagger';
 
 @Injectable()
 export class ActivationService {
@@ -66,8 +72,13 @@ export class ActivationService {
             },
         });
 
+        if (!user) {
+            this.logger.error('Failed to create user');
+            throw new InternalServerErrorException('Failed to create user');
+        }
+
         this.logger.debug(user);
 
-        return { message: 'activated' };
+        return { message: 'created' };
     }
 }
