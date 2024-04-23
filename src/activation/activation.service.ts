@@ -24,15 +24,6 @@ export class ActivationService {
             },
         });
 
-        if (!qrcode) {
-            this.logger.error(
-                `tshirt ${shirtId} with activation code ${activationCode} not found or not purchased yet.`,
-            );
-            throw new NotFoundException(
-                `tshirt ${shirtId} with activation code ${activationCode} not found or not purchased yet.`,
-            );
-        }
-
         this.logger.debug(qrcode);
 
         return { message: 'valid' };
