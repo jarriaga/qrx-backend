@@ -22,14 +22,11 @@ export class ActivationService {
 
     async validateActivationCode(dto: ValidateActivationCodeDto) {
         const { activationCode, shirtId } = dto;
-        const qrcode = await this.prismaService.qrcode.findFirstOrThrow({
-            where: {
-                activationCode,
-                shirtId: shirtId,
-                purchased: true,
-                activated: false,
-            },
-        });
+
+        const qrcode = await this.qrCodeService.findQrcodeNotActivatedNotPurchased(
+            activationCode,
+            shirtId,
+        );
 
         this.logger.debug(qrcode);
 
