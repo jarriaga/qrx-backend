@@ -53,6 +53,7 @@ model Qrcode {
   data           String?
   activationCode String   @unique //unique pin code for the qr code and web page for message
   purchased      Boolean  @default(false) //if the tshirt has been purchased
+  activated      Boolean  @default(false) //if the tshirt has been activated
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }

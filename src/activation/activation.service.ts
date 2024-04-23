@@ -3,24 +3,35 @@ import {
     InternalServerErrorException,
     Logger,
     NotFoundException,
+    UnprocessableEntityException,
 } from '@nestjs/common';
 import { ValidateActivationCodeDto } from './dto/validateActivationCode.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ActivationDto } from './dto/activation.dto';
+import { AuthService } from 'src/auth/auth.service';
+import { UserService } from 'src/user/user.service';
+import { QrcodeService } from 'src/qrcode/qrcode.service';
+const bcrypt = require('bcrypt');
 
 @Injectable()
 export class ActivationService {
     private readonly logger = new Logger(ActivationService.name);
 
-    constructor(private readonly prismaService: PrismaService) { }
+    constructor(
+        private readonly prismaService: PrismaService,
+        private readonly authService: AuthService,
+        private readonly userService: UserService,
+        private readonly qrCodeService: QrcodeService,
+    ) {}
 
     async validateActivationCode(dto: ValidateActivationCodeDto) {
         const { activationCode, shirtId } = dto;
-        const qrcode = await this.prismaService.qrcode.findFirst({
+        const qrcode = await this.prismaService.qrcode.findFirstOrThrow({
             where: {
                 activationCode,
                 shirtId: shirtId,
                 purchased: true,
+                activated: false,
             },
         });
 
@@ -31,44 +42,38 @@ export class ActivationService {
 
     async activateQrCodeAndCreateQuser(activationDto: ActivationDto) {
         const { activationCode, shirtId, email, password } = activationDto;
-        const qrcode = await this.prismaService.qrcode.findFirst({
-            where: {
+
+        //find qrcode
+        const qrcode =
+            await this.qrCodeService.findQrcodeNotActivatedNotPurchased(
                 activationCode,
                 shirtId,
-                purchased: true,
-            },
-        });
-
-        if (!qrcode) {
-            this.logger.error(
-                `tshirt ${shirtId} with activation code ${activationCode} not found or not purchased yet.`,
             );
-            throw new NotFoundException(
-                `tshirt ${shirtId} with activation code ${activationCode} not found or not purchased yet.`,
-            );
-        }
 
         this.logger.debug(qrcode);
 
-        const user = await this.prismaService.user.create({
-            data: {
-                email,
-                password,
-                Qrcodes: {
-                    connect: {
-                        id: qrcode.id,
-                    },
-                },
-            },
-        });
-
-        if (!user) {
-            this.logger.error('Failed to create user');
-            throw new InternalServerErrorException('Failed to create user');
+        const userExists = await this.userService.findUserByEmail(email);
+        if (userExists) {
+            this.logger.error(`User account ${email} already exist.`);
+            throw new UnprocessableEntityException(`account_already_taken`);
         }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const user = await this.userService.createUserwithQrCode(
+            email,
+            hashedPassword,
+            qrcode.id,
+        );
+
+        //update qrcode to activated true
+        await this.qrCodeService.activateQrcode(qrcode.id);
 
         this.logger.debug(user);
 
-        return { message: 'created' };
+        return await this.authService.signIn({
+            password,
+            email,
+        });
     }
 }

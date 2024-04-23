@@ -5,6 +5,8 @@ import { PrismaModule } from './prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
 import { ActivationModule } from './activation/activation.module';
 import { AuthModule } from './auth/auth.module';
+import { UserService } from './user/user.service';
+import { QrcodeService } from './qrcode/qrcode.service';
 @Module({
   imports: [
     PrismaModule,
@@ -13,6 +15,6 @@ import { AuthModule } from './auth/auth.module';
     AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, UserService, QrcodeService],
 })
 export class AppModule { }
