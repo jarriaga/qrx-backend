@@ -18,7 +18,7 @@ model User {
   firstname String?
   lastname  String?
   phone     String?
-  email     String?
+  email     String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   password  String?

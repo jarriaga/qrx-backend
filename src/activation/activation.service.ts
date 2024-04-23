@@ -7,13 +7,12 @@ import {
 import { ValidateActivationCodeDto } from './dto/validateActivationCode.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ActivationDto } from './dto/activation.dto';
-import { ApiInternalServerErrorResponse } from '@nestjs/swagger';
 
 @Injectable()
 export class ActivationService {
     private readonly logger = new Logger(ActivationService.name);
 
-    constructor(private readonly prismaService: PrismaService) {}
+    constructor(private readonly prismaService: PrismaService) { }
 
     async validateActivationCode(dto: ValidateActivationCodeDto) {
         const { activationCode, shirtId } = dto;
