@@ -2,7 +2,6 @@ import {
     Injectable,
     InternalServerErrorException,
     Logger,
-    UnprocessableEntityException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -47,7 +46,7 @@ export class UserService {
     }
 
     async findUserByEmail(email: string) {
-        const user = await this.prismaService.user.findUnique({
+        const user = await this.prismaService.user.findUniqueOrThrow({
             where: {
                 email,
             },

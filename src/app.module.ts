@@ -7,6 +7,7 @@ import { ActivationModule } from './activation/activation.module';
 import { AuthModule } from './auth/auth.module';
 import { UserService } from './user/user.service';
 import { QrcodeService } from './qrcode/qrcode.service';
+import { UserController } from './user/user.controller';
 @Module({
   imports: [
     PrismaModule,
@@ -14,7 +15,7 @@ import { QrcodeService } from './qrcode/qrcode.service';
     ActivationModule,
     AuthModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, UserController],
   providers: [AppService, UserService, QrcodeService],
 })
 export class AppModule { }

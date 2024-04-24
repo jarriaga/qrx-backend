@@ -8,6 +8,7 @@ async function bootstrap() {
     app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 
     const config = new DocumentBuilder()
+        .addBearerAuth()
         .setTitle('API test')
         .setDescription('API test')
         .setVersion('1.0')
