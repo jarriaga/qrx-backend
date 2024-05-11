@@ -16,7 +16,6 @@ export class ActivationService {
     private readonly logger = new Logger(ActivationService.name);
 
     constructor(
-        private readonly prismaService: PrismaService,
         private readonly authService: AuthService,
         private readonly userService: UserService,
         private readonly qrCodeService: QrcodeService,
