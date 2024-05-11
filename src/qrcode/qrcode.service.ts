@@ -18,7 +18,7 @@ export class QrcodeService {
         });
     }
 
-    async findQrcodeNotActivatedNotPurchased(
+    async findQrcodeNotActivatedAndPurchased(
         activationCode: string,
         shirtId: string,
     ) {

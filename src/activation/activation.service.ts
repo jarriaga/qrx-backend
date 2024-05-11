@@ -1,5 +1,7 @@
 import {
-    Injectable, Logger, UnprocessableEntityException
+    Injectable,
+    Logger,
+    UnprocessableEntityException,
 } from '@nestjs/common';
 import { ValidateActivationCodeDto } from './dto/validateActivationCode.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -18,27 +20,36 @@ export class ActivationService {
         private readonly authService: AuthService,
         private readonly userService: UserService,
         private readonly qrCodeService: QrcodeService,
-    ) { }
-
+    ) {}
+    /**
+     *
+     * just validate if activation code is valid or not
+     * @param dto
+     * @returns
+     */
     async validateActivationCode(dto: ValidateActivationCodeDto) {
         const { activationCode, shirtId } = dto;
-
-        const qrcode = await this.qrCodeService.findQrcodeNotActivatedNotPurchased(
-            activationCode,
-            shirtId,
-        );
-
+        const qrcode =
+            await this.qrCodeService.findQrcodeNotActivatedAndPurchased(
+                activationCode,
+                shirtId,
+            );
         this.logger.debug(qrcode);
-
         return { message: 'valid' };
     }
 
+    /**
+     *
+     * activate qrcode and create user
+     * @param activationDto
+     * @returns
+     */
     async activateQrCodeAndCreateQuser(activationDto: ActivationDto) {
         const { activationCode, shirtId, email, password } = activationDto;
 
         //find qrcode
         const qrcode =
-            await this.qrCodeService.findQrcodeNotActivatedNotPurchased(
+            await this.qrCodeService.findQrcodeNotActivatedAndPurchased(
                 activationCode,
                 shirtId,
             );

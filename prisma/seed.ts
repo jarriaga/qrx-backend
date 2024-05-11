@@ -6,7 +6,7 @@ async function main() {
         update: {},
         create: {
             id: '2d6f1979-67c3-4860-b074-3a8ee8b5eea3',
-            shirtId: 'BDAEX223',
+            shirtId: 'BDAEX2',
             urlCode: 'http://localhost:5173/BDAEX223',
             activationCode: 'AA3-322-1ZX',
             type: QrType.TEXT,
@@ -20,7 +20,7 @@ async function main() {
         },
         create: {
             id: '4d6f1979-67c3-4860-b074-3a8ee8b5dfc2',
-            shirtId: 'XSE22AS',
+            shirtId: 'XS12AS',
             urlCode: 'http://localhost:5173/XSE22AS',
             activationCode: 'AA3-822-AXF',
             purchased: true,
@@ -33,7 +33,7 @@ async function main() {
         update: {},
         create: {
             id: '4d6f1979-67c3-4860-b074-3a8ee8b5dfbb',
-            shirtId: 'XSE22BB',
+            shirtId: 'XSE2BB',
             urlCode: 'http://localhost:5173/XSE22BB',
             activationCode: 'AA3-822-ABB',
             type: QrType.TEXT,
@@ -45,7 +45,7 @@ async function main() {
         update: {},
         create: {
             id: '4d6f1979-67c3-4860-b074-3a8ee8b5dfcc',
-            shirtId: 'XSE22CC',
+            shirtId: 'XSE2CC',
             urlCode: 'http://localhost:5173/XSE22CC',
             activationCode: 'AA3-822-ACC',
             type: QrType.TEXT,
