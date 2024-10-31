@@ -29,4 +29,9 @@ export class PrintifyController {
     ) {
         return this.qrTshirtService.getOrderStatus(orderId, shopId);
     }
+
+    @Get('shops')
+    async getShops() {
+        return this.qrTshirtService.getShops();
+    }
 }

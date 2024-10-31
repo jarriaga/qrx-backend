@@ -3,13 +3,15 @@ import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import * as qrcode from 'qrcode';
 import * as fs from 'fs/promises';
+import { createReadStream } from 'fs';
+import * as FormData from 'form-data';
 import { Blob } from 'buffer';
 import { CreateTemplateDto } from './dto/create-template.dto';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { Template } from './entities/template.entity';
 import { Order } from './entities/order.entity';
-import FormData from 'form-data';
-
+import { PrintifyShopDto } from './dto/shop.dto';
+import { Logger } from '@nestjs/common';
 @Injectable()
 export class PrintifyService {
     private readonly apiKey: string;
@@ -37,13 +39,12 @@ export class PrintifyService {
             },
         };
 
-        const qrImagePath = `./temp/qr-design-${Date.now()}.png`;
-
+        // Generate QR code as base64
         try {
-            await fs.mkdir('./temp', { recursive: true });
-            await qrcode.toFile(qrImagePath, data, options);
-            return qrImagePath;
+            const qrCodeBase64 = await qrcode.toDataURL(data, options);
+            return qrCodeBase64;
         } catch (error) {
+            console.error('QR Generation error:', error);
             throw new HttpException(
                 `Failed to generate QR code: ${error.message}`,
                 HttpStatus.INTERNAL_SERVER_ERROR,
@@ -51,36 +52,50 @@ export class PrintifyService {
         }
     }
 
-    private async uploadDesign(imagePath: string): Promise<string> {
+    private async uploadDesign(imageBase64: string): Promise<string> {
         try {
-            const imageBuffer = await fs.readFile(imagePath);
-            const form = new FormData();
+            console.log('Starting image upload to Printify...');
 
-            // Append the file buffer directly to form-data
-            form.append('file', imageBuffer, {
-                filename: 'qr-design.png',
-                contentType: 'image/png',
-            });
+            // Remove the data:image/png;base64, prefix if it exists
+            const base64Data = imageBase64.replace(
+                /^data:image\/\w+;base64,/,
+                '',
+            );
+
+            // Prepare the upload request body according to Printify's documentation
+            const uploadData = {
+                file_name: `qr-design-${Date.now()}.png`,
+                contents: base64Data,
+            };
 
             const response = await axios.post(
                 `${this.baseUrl}/uploads/images.json`,
-                form.getBuffer(),
+                uploadData,
                 {
                     headers: {
-                        ...form.getHeaders(),
                         Authorization: `Bearer ${this.apiKey}`,
+                        'Content-Type': 'application/json',
                     },
-                    maxBodyLength: Infinity,
-                    maxContentLength: Infinity,
                 },
             );
 
-            await fs.unlink(imagePath); // Clean up temporary file
-            return response.data.image_url;
+            console.log('Upload successful, response:', response.data);
+
+            if (!response.data) {
+                throw new Error('Invalid response from Printify API');
+            }
+
+            return response.data.preview_url;
         } catch (error) {
+            console.error('Upload error:', {
+                message: error.message,
+                response: error.response?.data,
+                status: error.response?.status,
+            });
+
             throw new HttpException(
-                `Failed to upload design: ${error.message}`,
-                HttpStatus.INTERNAL_SERVER_ERROR,
+                `Failed to upload design: ${error.response?.data?.message || error.message}`,
+                error.response?.status || HttpStatus.INTERNAL_SERVER_ERROR,
             );
         }
     }
@@ -93,6 +108,7 @@ export class PrintifyService {
             const placeholderQR = await this.generateQRCode('placeholder');
             const placeholderImageUrl = await this.uploadDesign(placeholderQR);
 
+            Logger.debug('Creating template with data:', createTemplateDto);
             const productData = {
                 title: createTemplateDto.title,
                 description: createTemplateDto.description,
@@ -105,6 +121,7 @@ export class PrintifyService {
                 is_personalized: true,
             };
 
+            Logger.debug(productData);
             const response = await axios.post(
                 `${this.baseUrl}/shops/${createTemplateDto.shopId}/products.json`,
                 productData,
@@ -115,6 +132,7 @@ export class PrintifyService {
 
             return response.data;
         } catch (error) {
+            Logger.error(error);
             throw new HttpException(
                 `Failed to create template: ${error.message}`,
                 HttpStatus.INTERNAL_SERVER_ERROR,
@@ -180,6 +198,22 @@ export class PrintifyService {
         } catch (error) {
             throw new HttpException(
                 `Failed to get order status: ${error.message}`,
+                HttpStatus.INTERNAL_SERVER_ERROR,
+            );
+        }
+    }
+
+    async getShops(): Promise<PrintifyShopDto[]> {
+        try {
+            const response = await axios.get(`${this.baseUrl}/shops.json`, {
+                headers: {
+                    Authorization: `Bearer ${this.apiKey}`,
+                },
+            });
+            return response.data;
+        } catch (error) {
+            throw new HttpException(
+                `Failed to fetch shops: ${error.message}`,
                 HttpStatus.INTERNAL_SERVER_ERROR,
             );
         }
