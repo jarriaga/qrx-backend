@@ -8,14 +8,16 @@ import { AuthModule } from './auth/auth.module';
 import { UserService } from './user/user.service';
 import { QrcodeService } from './qrcode/qrcode.service';
 import { UserController } from './user/user.controller';
+import { PrintifyModule } from './printify/printify.module';
 @Module({
-  imports: [
-    PrismaModule,
-    ConfigModule.forRoot({ isGlobal: true }),
-    ActivationModule,
-    AuthModule,
-  ],
-  controllers: [AppController, UserController],
-  providers: [AppService, UserService, QrcodeService],
+    imports: [
+        PrismaModule,
+        ConfigModule.forRoot({ isGlobal: true }),
+        ActivationModule,
+        AuthModule,
+        PrintifyModule,
+    ],
+    controllers: [AppController, UserController],
+    providers: [AppService, UserService, QrcodeService],
 })
-export class AppModule { }
+export class AppModule {}
