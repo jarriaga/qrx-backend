@@ -1,0 +1,34 @@
+{
+    "title": "Qrific T-shirt white",
+    "description": "Qrific QR code t-shirt",
+    "blueprint_id": 145,
+    "print_provider_id": 111,
+    "shop_id": 18840551,
+    "variants": [
+        {
+            "id": 38163,
+            "price": 2000,
+            "is_enabled": true
+        },
+        {
+            "id": 38177,
+            "price": 2000,
+            "is_enabled": true
+        },
+        {
+            "id": 38191,
+            "price": 2000,
+            "is_enabled": true
+        },
+        {
+            "id": 38205,
+            "price": 2000,
+            "is_enabled": true
+        },
+        {
+            "id": 38219,
+            "price": 2000,
+            "is_enabled": true
+        }
+    ]
+}
