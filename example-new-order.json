@@ -1,0 +1,22 @@
+{
+    "external_id": "my-order-123",
+    "line_items": [
+        {
+            "product_id": "67271259e6b9cf8cea03926e",
+            "variant_id": "38163",
+            "quantity": 1
+        }
+    ],
+    "shipping_address": {
+        "first_name": "John",
+        "last_name": "Doe",
+        "address1": "123 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zip": "10001",
+        "country": "US",
+        "phone": "123-456-7890",
+        "email": "john@example.com"
+    },
+    "shipping_method": 1
+}

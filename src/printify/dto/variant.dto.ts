@@ -20,9 +20,9 @@ export class VariantOptionDto {
 }
 
 export class VariantDto {
-    @IsString()
+    @IsNumber()
     @IsNotEmpty()
-    id: string;
+    id: number;
 
     @IsNumber()
     price: number;
@@ -34,9 +34,4 @@ export class VariantDto {
     @IsString()
     @IsOptional()
     sku?: string;
-
-    @IsArray()
-    @ValidateNested({ each: true })
-    @Type(() => VariantOptionDto)
-    options: VariantOptionDto[];
 }

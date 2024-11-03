@@ -1,25 +1,28 @@
+import {
+    IsString,
+    IsNumber,
+    IsArray,
+    IsOptional,
+    ValidateNested,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+import { ShippingAddressDto } from './shipping-address.dto';
+import { LineItemDto } from './line-item.dto';
+
 export class CreateOrderDto {
-    qrContent: string;
-    variantId: string;
-    shippingAddress: {
-        first_name: string;
-        last_name: string;
-        address1: string;
-        city: string;
-        state: string;
-        zip: string;
-        country: string;
-        phone: string;
-        email: string;
-        shop_id: string;
-    };
-    paymentMethod: {
-        type: string;
-        details?: {
-            number: string;
-            expiry_month: number;
-            expiry_year: number;
-            cvc: string;
-        };
-    };
+    @IsOptional()
+    @IsString()
+    external_id?: string;
+
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => LineItemDto)
+    line_items: LineItemDto[];
+
+    @ValidateNested()
+    @Type(() => ShippingAddressDto)
+    shipping_address: ShippingAddressDto;
+
+    @IsNumber()
+    shipping_method: number;
 }

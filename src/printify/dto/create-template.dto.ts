@@ -17,16 +17,14 @@ export class CreateTemplateDto {
     @IsNotEmpty()
     description: string;
 
-    @IsNumber()
     @IsNotEmpty()
-    blueprintId: number;
+    blueprint_id: number;
 
-    @IsNumber()
-    printProviderId: number;
-
-    @IsNumber()
     @IsNotEmpty()
-    shopId: number;
+    print_provider_id: number;
+
+    @IsNotEmpty()
+    shop_id: string;
 
     @IsArray()
     @ValidateNested({ each: true })
