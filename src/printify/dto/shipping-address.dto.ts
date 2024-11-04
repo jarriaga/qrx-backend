@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsEmail } from 'class-validator';
+import { IsString, IsNotEmpty, IsEmail, IsOptional } from 'class-validator';
 
 export class ShippingAddressDto {
     @IsString()
@@ -19,15 +19,15 @@ export class ShippingAddressDto {
 
     @IsString()
     @IsNotEmpty()
-    state: string;
-
-    @IsString()
-    @IsNotEmpty()
     zip: string;
 
     @IsString()
     @IsNotEmpty()
     country: string;
+
+    @IsString()
+    @IsOptional()
+    region: string;
 
     @IsString()
     @IsNotEmpty()

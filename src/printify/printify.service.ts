@@ -162,15 +162,12 @@ export class PrintifyService {
         try {
             // Generate and upload new QR code
             const qrCodeBase64 = await this.generateQRCode(
-                'http://www.qrific.me/jesusarriagabarron',
+                'http://www.qrific.me/jesusarriagabarron123',
             );
             const uploadedImageUrl = await this.uploadDesign(qrCodeBase64);
 
             // Create the print details maintaining the original structure
             const printDetails = {
-                variant_ids: [
-                    /* ... variant IDs ... */
-                ],
                 placeholders: [
                     {
                         position: 'back',
@@ -253,7 +250,7 @@ export class PrintifyService {
                     ...item,
                     print_details: printDetails,
                 })),
-                shipping_address: createOrderDto.shipping_address,
+                address_to: createOrderDto.address_to,
                 shipping_method: createOrderDto.shipping_method,
             };
 
