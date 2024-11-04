@@ -5,7 +5,6 @@ import * as qrcode from 'qrcode';
 import { CreateTemplateDto } from './dto/create-template.dto';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { Template } from './entities/template.entity';
-import { Order } from './entities/order.entity';
 import { PrintifyShopDto } from './dto/shop.dto';
 import { Logger } from '@nestjs/common';
 @Injectable()
@@ -50,7 +49,10 @@ export class PrintifyService {
         }
     }
 
-    private async uploadDesign(imageBase64: string): Promise<any> {
+    private async uploadDesign(
+        imageBase64: string,
+        external_id: string = null,
+    ): Promise<any> {
         try {
             console.log('Starting image upload to Printify...');
 
@@ -60,9 +62,11 @@ export class PrintifyService {
                 '',
             );
 
+            external_id = external_id || `${Date.now()}`;
+
             // Prepare the upload request body according to Printify's documentation
             const uploadData = {
-                file_name: `qr-design-${Date.now()}.png`,
+                file_name: `qr-tshirt-${external_id}.png`,
                 contents: base64Data,
             };
 
@@ -109,6 +113,7 @@ export class PrintifyService {
             console.log(
                 createTemplateDto.variants.map((variant) => variant.id),
             );
+
             const productData = {
                 title: createTemplateDto.title,
                 description: createTemplateDto.description,
@@ -164,7 +169,10 @@ export class PrintifyService {
             const qrCodeBase64 = await this.generateQRCode(
                 'http://www.qrific.me/jesusarriagabarron123',
             );
-            const uploadedImageUrl = await this.uploadDesign(qrCodeBase64);
+            const uploadedImageUrl = await this.uploadDesign(
+                qrCodeBase64,
+                createOrderDto.external_id,
+            );
 
             // Create the print details maintaining the original structure
             const printDetails = {
@@ -197,6 +205,18 @@ export class PrintifyService {
                                 src: 'https://pfy-prod-image-storage.s3.us-east-2.amazonaws.com/20435315/38c96700-7ab8-41a1-be6d-824bc616bd59',
                             },
                             {
+                                id: '67271592a0be91703554a77d',
+                                name: 'Group 58.svg',
+                                type: 'image/png',
+                                height: 199,
+                                width: 638,
+                                x: 0.5000000000000001,
+                                y: 0.8509497999673548,
+                                scale: 0.3543905314618505,
+                                angle: 0,
+                                src: 'https://pfy-prod-image-storage.s3.us-east-2.amazonaws.com/20435315/56c75257-d345-4e0e-8673-2b275a724e8c',
+                            },
+                            {
                                 id: '6727159642cc89acd4317242',
                                 name: 'QRIFIC.ME.svg',
                                 type: 'image/png',
@@ -209,33 +229,20 @@ export class PrintifyService {
                                 src: 'https://pfy-prod-image-storage.s3.us-east-2.amazonaws.com/20435315/b3bd32ef-2cef-4808-8318-0fb5df402952',
                             },
                             {
-                                id: '67271592a0be91703554a77d',
-                                name: 'Group 58.svg',
-                                type: 'image/png',
-                                height: 199,
-                                width: 638,
+                                id: '94440fa7-2066-bc92-d65f-0f21dbace544',
+                                name: '',
+                                type: 'text/svg',
+                                height: 1,
+                                width: 1,
                                 x: 0.5000000000000001,
-                                y: 0.8509497999673548,
-                                scale: 0.3543905314618505,
+                                y: 0.04616005405806614,
+                                scale: 0.4317238384180558,
                                 angle: 0,
-                                src: 'https://pfy-prod-image-storage.s3.us-east-2.amazonaws.com/20435315/56c75257-d345-4e0e-8673-2b275a724e8c',
-                            },
-                        ],
-                    },
-                    {
-                        position: 'front',
-                        images: [
-                            {
-                                id: '6727177e76dd9e38e5652fee',
-                                name: 'logoQrific.svg',
-                                type: 'image/png',
-                                height: 665,
-                                width: 642,
-                                x: 0.11513215341576868,
-                                y: 0.10129894399364718,
-                                scale: 0.18044016585530132,
-                                angle: 0,
-                                src: 'https://pfy-prod-image-storage.s3.us-east-2.amazonaws.com/20435315/f683e99a-cd95-416e-a73d-58d7f2db9406',
+                                font_family: 'Paytone One',
+                                font_size: 200,
+                                font_weight: 400,
+                                font_color: '#000000',
+                                input_text: 'scan me',
                             },
                         ],
                     },
