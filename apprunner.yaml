@@ -13,7 +13,7 @@ build:
       - ls -la 
 run:
   runtime-version: 18.20.4
-  command: node /app/dist/main.js
+  command: npm run start:prod
   network:
     port: 3001
     env: PORT
