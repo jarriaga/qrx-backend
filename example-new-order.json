@@ -1,0 +1,22 @@
+{
+    "external_id": "my-order-1234567",
+    "line_items": [
+        {
+            "product_id": "67271259e6b9cf8cea03926e",
+            "variant_id": "38163",
+            "quantity": 1
+        }
+    ],
+    "address_to": {
+        "first_name": "Jesus",
+        "last_name": "Barron",
+        "address1": "3511 Laurel Valley Lane",
+        "city": "Melissa",
+        "state": "TX",
+        "zip": "75454",
+        "country": "US",
+        "phone": "9723704629",
+        "email": "jarriagabarron@gmail.com"
+    },
+    "shipping_method": 1
+}
