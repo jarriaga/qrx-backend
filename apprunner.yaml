@@ -9,6 +9,8 @@ build:
     build:
       - npx prisma generate
       - npm run build
+      # Verify the build output
+      - ls -la dist/
 run:
   runtime-version: 18.20.4
   command: cd /app && npm run start:prod
