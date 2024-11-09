@@ -10,7 +10,7 @@ build:
       - npx prisma generate
       - npm run build
 run:
-  runtime-version: 18.x
+  runtime-version: 18.20.4
   command: npm run start:prod
   network:
     port: 3000
