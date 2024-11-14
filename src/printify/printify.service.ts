@@ -447,4 +447,12 @@ export class PrintifyService {
             );
         }
     }
+
+    async generateQrCode(text: string, id: string): Promise<string> {
+        // Generate and upload placeholder QR
+        Logger.debug('Generating QR code for:', text);
+        const placeholderQR = await this.generateQRCode(text);
+        const uploadImageResponse = await this.uploadDesign(placeholderQR, id);
+        return uploadImageResponse;
+    }
 }
