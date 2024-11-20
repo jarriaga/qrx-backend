@@ -384,4 +384,21 @@ export class PrintifyService {
             );
         }
     }
+
+    async getProducts(): Promise<any> {
+        try {
+            const response = await axios.get(
+                `${this.baseUrl}/shops/${this.shopId}/products.json`,
+                {
+                    headers: this.headers,
+                },
+            );
+            return response.data;
+        } catch (error) {
+            throw new HttpException(
+                `Failed to fetch products: ${error.message}`,
+                HttpStatus.INTERNAL_SERVER_ERROR,
+            );
+        }
+    }
 }

@@ -49,4 +49,9 @@ export class PrintifyController {
     ) {
         return this.printifyService.getVariants(blueprintId, printProviderId);
     }
+
+    @Get('products')
+    async getProducts() {
+        return this.printifyService.getProducts();
+    }
 }
