@@ -387,14 +387,59 @@ export class PrintifyService {
 
     async getProducts(): Promise<any> {
         try {
-            const response = await axios.get(
+            let response = await axios.get(
                 `${this.baseUrl}/shops/${this.shopId}/products.json`,
                 {
                     headers: this.headers,
                 },
             );
-            return response.data;
+            const [product] = response.data.data.filter(
+                (product) => product.id == '67271259e6b9cf8cea03926e',
+            );
+
+            const productObj = {
+                id: product.id,
+                title: product.title,
+                options: product.options,
+                variants: product.variants,
+                images: product.images,
+            };
+
+            productObj.variants = productObj.variants.reduce((acc, variant) => {
+                if (variant.options.includes(521)) {
+                    acc.push({
+                        id: variant.id,
+                        title: variant.title,
+                        options: variant.options,
+                        price: variant.price,
+                        sku: variant.sku,
+                    });
+                }
+                return acc;
+            }, []);
+
+            productObj.options = productObj.options.filter((option) => {
+                if (option.type == 'size') {
+                    return true;
+                }
+                if (option.type == 'color') {
+                    option.values = option.values.filter((value) => {
+                        if (value.id == 521) {
+                            return true;
+                        }
+                        return false;
+                    });
+                    return {
+                        name: option.name,
+                        type: option.type,
+                        values: option.values,
+                    };
+                }
+            });
+
+            return productObj;
         } catch (error) {
+            Logger.error(error);
             throw new HttpException(
                 `Failed to fetch products: ${error.message}`,
                 HttpStatus.INTERNAL_SERVER_ERROR,
