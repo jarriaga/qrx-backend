@@ -401,6 +401,7 @@ export class PrintifyService {
                 id: product.id,
                 title: product.title,
                 options: product.options,
+                description: product.description,
                 variants: product.variants,
                 images: product.images,
             };
