@@ -9,9 +9,11 @@ import { UserService } from './user/user.service';
 import { QrcodeService } from './qrcode/qrcode.service';
 import { UserController } from './user/user.controller';
 import { PrintifyModule } from './printify/printify.module';
+import { CheckoutModule } from './checkout/checkout.module';
 @Module({
     imports: [
         PrismaModule,
+        CheckoutModule,
         ConfigModule.forRoot({ isGlobal: true }),
         ActivationModule,
         AuthModule,
