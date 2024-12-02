@@ -3,8 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { Stripe } from 'stripe';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { randomstring } from 'randomstring';
-
+import { nanoid } from 'nanoid';
 @Injectable()
 export class CheckoutService {
     private stripe: Stripe;
@@ -20,8 +19,7 @@ export class CheckoutService {
 
     async createPaymentIntent(createOrderDto: CreateOrderDto) {
         try {
-            const orderNumberId = randomstring.generate(6).toUpperCase();
-            const orderNumber = `ORD-${orderNumberId}`;
+            const orderNumber = `ORD-${nanoid(6).toUpperCase()}`;
 
             // Create a payment intent with Stripe
             const paymentIntent = await this.stripe.paymentIntents.create({
@@ -58,7 +56,7 @@ export class CheckoutService {
                             create: createOrderDto.items.map((item) => ({
                                 productId: item.product.id,
                                 productTitle: item.product.title,
-                                variantId: item.variant.id,
+                                variantId: item.variant.id.toString(),
                                 variantTitle: item.variant.title,
                                 price: item.variant.price,
                                 quantity: item.quantity,

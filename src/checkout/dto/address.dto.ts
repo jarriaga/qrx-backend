@@ -30,7 +30,6 @@ export class AddressDto {
     country: string;
 
     @IsString()
-    @IsPhoneNumber()
     phone: string;
 
     @IsString()
