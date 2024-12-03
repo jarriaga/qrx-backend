@@ -30,6 +30,10 @@ export class CheckoutController {
         @Headers('stripe-signature') signature: string,
         @Req() request: RawBodyRequest<Request>,
     ) {
+        if (!request.rawBody) {
+            throw new Error('No webhook payload received');
+        }
+
         return this.checkoutService.handleStripeWebhook(
             signature,
             request.rawBody,

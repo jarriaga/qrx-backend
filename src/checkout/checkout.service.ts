@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Stripe } from 'stripe';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { nanoid } from 'nanoid';
+import { customAlphabet } from 'nanoid';
 @Injectable()
 export class CheckoutService {
     private stripe: Stripe;
@@ -17,9 +17,33 @@ export class CheckoutService {
         });
     }
 
+    getOrderNumber() {
+        const date = new Date();
+        const YY = date.getFullYear().toString().slice(-2);
+        const MM = String(date.getMonth() + 1).padStart(2, '0');
+        const DD = String(date.getDate()).padStart(2, '0');
+        const YYMMDD = YY + MM + DD;
+        return YYMMDD;
+    }
+
     async createPaymentIntent(createOrderDto: CreateOrderDto) {
         try {
-            const orderNumber = `ORD-${nanoid(6).toUpperCase()}`;
+            const alphabet = 'A0123456789';
+            const nanoid = customAlphabet(alphabet, 6);
+            let orderNumber = `${this.getOrderNumber()}${nanoid()}`;
+            // Check if order with order number already exists
+            let orderExists;
+            let isOrderNumberUnique = false;
+            while (!isOrderNumberUnique) {
+                orderExists = await this.prisma.order.findFirst({
+                    where: { orderNumber },
+                });
+                if (!orderExists) {
+                    isOrderNumberUnique = true;
+                } else {
+                    orderNumber = `${this.getOrderNumber()}${nanoid()}`;
+                }
+            }
 
             // Create a payment intent with Stripe
             const paymentIntent = await this.stripe.paymentIntents.create({
@@ -96,11 +120,18 @@ export class CheckoutService {
                 await this.stripe.paymentIntents.retrieve(paymentIntentId);
 
             if (paymentIntent.status === 'succeeded') {
+                Logger.debug('New payment intent succeeded');
+                Logger.debug(paymentIntentId);
+
                 const updatedOrder = await this.prisma.order.update({
                     where: { id: order.id },
                     data: { status: 'paid' },
                     include: { items: true },
                 });
+
+                // Todo
+                // Send confirmation email to customer
+                // Create a new print job to printify service
 
                 return updatedOrder;
             } else {
@@ -130,6 +161,7 @@ export class CheckoutService {
 
     async handleStripeWebhook(signature: string, payload: Buffer) {
         try {
+            Logger.log('Received webhook event', 'CheckoutService');
             const event = this.stripe.webhooks.constructEvent(
                 payload,
                 signature,
