@@ -167,6 +167,7 @@ export class CheckoutService {
                 signature,
                 this.configService.get('STRIPE_WEBHOOK_SECRET'),
             );
+            Logger.debug('Event Type: ' + event.type, 'CheckoutService');
 
             switch (event.type) {
                 case 'payment_intent.succeeded':
