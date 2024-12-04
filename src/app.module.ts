@@ -10,6 +10,7 @@ import { QrcodeService } from './qrcode/qrcode.service';
 import { UserController } from './user/user.controller';
 import { PrintifyModule } from './printify/printify.module';
 import { CheckoutModule } from './checkout/checkout.module';
+import { EmailModule } from './email/email.module';
 @Module({
     imports: [
         PrismaModule,
@@ -18,6 +19,7 @@ import { CheckoutModule } from './checkout/checkout.module';
         ActivationModule,
         AuthModule,
         PrintifyModule,
+        EmailModule,
     ],
     controllers: [AppController, UserController],
     providers: [AppService, UserService, QrcodeService],

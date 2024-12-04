@@ -4,6 +4,7 @@ import { Stripe } from 'stripe';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { customAlphabet } from 'nanoid';
+import { EmailService } from 'src/email/email.service';
 @Injectable()
 export class CheckoutService {
     private stripe: Stripe;
@@ -11,6 +12,7 @@ export class CheckoutService {
     constructor(
         private prisma: PrismaService,
         private configService: ConfigService,
+        private emailService: EmailService,
     ) {
         this.stripe = new Stripe(this.configService.get('STRIPE_SECRET_KEY'), {
             apiVersion: '2024-11-20.acacia',
@@ -128,6 +130,19 @@ export class CheckoutService {
                     data: { status: 'paid' },
                     include: { items: true },
                 });
+
+                // Send confirmation email
+                try {
+                    await this.emailService.sendOrderConfirmation(updatedOrder);
+                    Logger.log(
+                        `Confirmation email sent for order ${order.orderNumber}`,
+                    );
+                } catch (emailError) {
+                    Logger.error(
+                        `Failed to send confirmation email: ${emailError.message}`,
+                    );
+                    // Don't throw the error as we don't want to roll back the order confirmation
+                }
 
                 // Todo
                 // Send confirmation email to customer
