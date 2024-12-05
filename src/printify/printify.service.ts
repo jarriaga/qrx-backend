@@ -7,6 +7,7 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { Template } from './entities/template.entity';
 import { PrintifyShopDto } from './dto/shop.dto';
 import { Logger } from '@nestjs/common';
+import { CalculateShippingDto } from './dto/calculate-shipping.dto';
 @Injectable()
 export class PrintifyService {
     private readonly apiKey: string;
@@ -454,5 +455,64 @@ export class PrintifyService {
         const placeholderQR = await this.generateQRCode(text);
         const uploadImageResponse = await this.uploadDesign(placeholderQR, id);
         return uploadImageResponse;
+    }
+
+    async calculateShipping(data: CalculateShippingDto): Promise<any> {
+        try {
+            Logger.debug('Calculating shipping costs...', 'PrintifyService');
+            Logger.debug(`Shop ID: ${this.shopId}`, 'PrintifyService');
+
+            const endpoint = `${this.baseUrl}/shops/${this.shopId}/orders/shipping.json`;
+
+            // Format the request body according to Printify's API
+            const requestBody = {
+                address_to: {
+                    email: data.address_to.email,
+                    first_name: data.address_to.first_name,
+                    last_name: data.address_to.last_name,
+                    address1: data.address_to.address1,
+                    city: data.address_to.city,
+                    state: data.address_to.state,
+                    zip: data.address_to.zip,
+                    country: data.address_to.country,
+                    phone: data.address_to.phone,
+                },
+                line_items: data.line_items.map((item) => ({
+                    product_id: item.product_id,
+                    variant_id: item.variant_id,
+                    quantity: item.quantity,
+                })),
+            };
+
+            Logger.debug(`Sending request to ${endpoint}`, 'PrintifyService');
+            Logger.debug(
+                `Request body: ${JSON.stringify(requestBody)}`,
+                'PrintifyService',
+            );
+
+            const response = await axios.post(endpoint, requestBody, {
+                headers: this.headers,
+            });
+
+            Logger.debug(
+                'Shipping calculation response received',
+                'PrintifyService',
+            );
+            Logger.debug(
+                `Response: ${JSON.stringify(response.data)}`,
+                'PrintifyService',
+            );
+
+            // Response will contain available shipping methods and their costs
+            return response.data;
+        } catch (error) {
+            Logger.error('Failed to calculate shipping:', error);
+            Logger.error('Error details:', error.response?.data);
+
+            throw new HttpException(
+                `Failed to calculate shipping: ${error.response?.data?.message || error.message}`,
+                error.response?.status || HttpStatus.INTERNAL_SERVER_ERROR,
+            );
+        }
     }
 }

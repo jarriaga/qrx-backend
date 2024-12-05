@@ -27,7 +27,7 @@ export class ShippingAddressDto {
 
     @IsString()
     @IsOptional()
-    region: string;
+    state: string;
 
     @IsString()
     @IsNotEmpty()

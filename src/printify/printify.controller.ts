@@ -3,6 +3,7 @@ import { PrintifyService } from './printify.service';
 import { CreateTemplateDto } from './dto/create-template.dto';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { CalculateShippingDto } from './dto/calculate-shipping.dto';
 
 @ApiTags('Printify Service')
 @Controller('printify')
@@ -53,5 +54,15 @@ export class PrintifyController {
     @Get('products')
     async getProducts() {
         return this.printifyService.getProducts();
+    }
+
+    @Post('calculate-shipping')
+    async calculateShipping(
+        @Body() calculateShippingDto: CalculateShippingDto,
+    ) {
+        console.log('calculate-shipping', calculateShippingDto);
+        return await this.printifyService.calculateShipping(
+            calculateShippingDto,
+        );
     }
 }
