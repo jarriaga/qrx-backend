@@ -22,9 +22,9 @@ export class CheckoutController {
         return this.checkoutService.createPaymentIntent(createOrderDto);
     }
 
-    @Get('order/:orderNumber')
-    getOrder(@Param('orderNumber') orderNumber: string) {
-        return this.checkoutService.getOrder(orderNumber);
+    @Post('order-information')
+    getOrder(@Body('paymentIntentId') paymentIntentId: string) {
+        return this.checkoutService.getOrderSecure(paymentIntentId);
     }
 
     @Post('webhook')
