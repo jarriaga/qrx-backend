@@ -29,6 +29,8 @@ model Order {
   shippingMethod   String
   subtotal         Int
   shipping         Int
+  tax              Int         @default(0)
+  taxRate          Float       @default(0)
   total            Int
   status           String      @default("pending")
   paymentIntentId  String      @unique

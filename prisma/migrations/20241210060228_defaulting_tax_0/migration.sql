@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Order" ALTER COLUMN "tax" SET DEFAULT 0,
+ALTER COLUMN "taxRate" SET DEFAULT 0;

@@ -2,15 +2,14 @@ import {
     Controller,
     Post,
     Body,
-    Headers,
-    Get,
-    Param,
-    RawBodyRequest,
-    Req,
+    Headers, RawBodyRequest,
+    Req
 } from '@nestjs/common';
 import { CheckoutService } from './checkout.service';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Checkout')
 @Controller('checkout')
 export class CheckoutController {
     constructor(private readonly checkoutService: CheckoutService) {}
@@ -20,16 +19,25 @@ export class CheckoutController {
         return this.checkoutService.createPaymentIntent(createOrderDto);
     }
 
-    @Get('order/:orderNumber')
-    getOrder(@Param('orderNumber') orderNumber: string) {
-        return this.checkoutService.getOrder(orderNumber);
+    @Post('order-information')
+    getOrder(@Body('paymentIntentId') paymentIntentId: string) {
+        return this.checkoutService.getOrderSecure(paymentIntentId);
     }
+
+    @Post('order-status')
+    getOrderStatus(@Body('email') email: string, @Body('orderNumber') orderNumber: string) {
+        return this.checkoutService.getOrderStatus(email, orderNumber);
+    }    
 
     @Post('webhook')
     handleWebhook(
         @Headers('stripe-signature') signature: string,
         @Req() request: RawBodyRequest<Request>,
     ) {
+        if (!request.rawBody) {
+            throw new Error('No webhook payload received');
+        }
+
         return this.checkoutService.handleStripeWebhook(
             signature,
             request.rawBody,

@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
+import * as express from 'express';
 
 async function bootstrap() {
     try {
@@ -20,6 +21,17 @@ async function bootstrap() {
 
         // Enable CORS
         app.enableCors();
+
+        // Enable raw body parsing for stripe webhook
+        app.use(
+            express.json({
+                verify: (req: any, res, buf) => {
+                    if (req.url.includes('/webhook')) {
+                        req.rawBody = buf.toString();
+                    }
+                },
+            }),
+        );
 
         await app.listen(3001);
     } catch (error) {
