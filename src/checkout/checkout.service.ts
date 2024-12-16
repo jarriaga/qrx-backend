@@ -223,6 +223,25 @@ export class CheckoutService {
         }
     }
 
+    async getOrderStatus(email: string, orderNumber: string): Promise<any> {
+        try {
+            Logger.debug(
+                `Getting order status for ${email} and ${orderNumber}`,
+                'CheckoutService',
+            );
+            const order = await this.prisma.order.findFirst({
+                where: { email, orderNumber },
+            });
+
+            if (!order) {
+                throw new Error('Order not found or unauthorized');
+            }
+            return order;
+        } catch (error) {
+            throw new Error(`Error fetching order: ${error.message}`);
+        }
+    }
+
     async verifyAndCalculatePrices(createOrderDto: CreateOrderDto) {
         try {
             // 1. Get product from Printify

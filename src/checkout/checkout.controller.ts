@@ -2,11 +2,8 @@ import {
     Controller,
     Post,
     Body,
-    Headers,
-    Get,
-    Param,
-    RawBodyRequest,
-    Req,
+    Headers, RawBodyRequest,
+    Req
 } from '@nestjs/common';
 import { CheckoutService } from './checkout.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -26,6 +23,11 @@ export class CheckoutController {
     getOrder(@Body('paymentIntentId') paymentIntentId: string) {
         return this.checkoutService.getOrderSecure(paymentIntentId);
     }
+
+    @Post('order-status')
+    getOrderStatus(@Body('email') email: string, @Body('orderNumber') orderNumber: string) {
+        return this.checkoutService.getOrderStatus(email, orderNumber);
+    }    
 
     @Post('webhook')
     handleWebhook(
