@@ -3,9 +3,11 @@ import { ConfigService } from '@nestjs/config';
 import { Stripe } from 'stripe';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { CreateOrderDto as PrintifyCreateOrderDto } from 'src/printify/dto/create-order.dto';
 import { customAlphabet } from 'nanoid';
 import { EmailService } from 'src/email/email.service';
 import { PrintifyService } from 'src/printify/printify.service';
+import { QrcodeService } from 'src/qrcode/qrcode.service';
 @Injectable()
 export class CheckoutService {
     private stripe: Stripe;
@@ -15,6 +17,7 @@ export class CheckoutService {
         private configService: ConfigService,
         private emailService: EmailService,
         private printifyService: PrintifyService,
+        private qrCodeService: QrcodeService,
     ) {
         this.stripe = new Stripe(this.configService.get('STRIPE_SECRET_KEY'), {
             apiVersion: '2024-11-20.acacia',
@@ -153,7 +156,36 @@ export class CheckoutService {
 
                 // Send confirmation email
                 try {
+                    const createOrderDto: PrintifyCreateOrderDto = {
+                        external_id: updatedOrder.orderNumber,
+                        line_items: updatedOrder.items.map((item) => ({
+                            product_id: item.productId,
+                            variant_id: item.variantId,
+                            quantity: item.quantity,
+                        })),
+                        address_to: {
+                            first_name: updatedOrder.firstName,
+                            last_name: updatedOrder.lastName,
+                            address1: updatedOrder.address,
+                            city: updatedOrder.city,
+                            state: updatedOrder.state,
+                            zip: updatedOrder.zipCode,
+                            country: updatedOrder.country,
+                            phone: updatedOrder.phone,
+                            email: updatedOrder.email,
+                        },
+                        shipping_method: 1,
+                    };
+                    const qrCodes =
+                        await this.qrCodeService.createQrCode(createOrderDto);
+                    await this.printifyService.createOrder(
+                        createOrderDto,
+                        qrCodes,
+                    );
                     await this.emailService.sendOrderConfirmation(updatedOrder);
+                    await this.emailService.sendOrderConfirmationToAdmin(
+                        updatedOrder,
+                    );
                     Logger.log(
                         `Confirmation email sent for order ${order.orderNumber}`,
                     );

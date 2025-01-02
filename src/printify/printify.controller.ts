@@ -15,11 +15,6 @@ export class PrintifyController {
         return this.printifyService.createTemplate(createTemplateDto);
     }
 
-    @Post('order')
-    async createOrder(@Body() createOrderDto: CreateOrderDto) {
-        return this.printifyService.createOrder(createOrderDto);
-    }
-
     @Get('order/:shopId/:orderId')
     async getOrderStatus(
         @Param('shopId') shopId: string,

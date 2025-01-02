@@ -13,6 +13,43 @@ export class EmailService {
         return (cents / 100).toFixed(2);
     }
 
+    async sendOrderConfirmationToAdmin(order: Order & { items: OrderItem[] }) {
+        //generate an just text email with the order details with html
+        const email = {
+            to: 'jbarron@200response.mx',
+            from: {
+                email: this.configService.get<string>(
+                    'SENDGRID_VERIFIED_SENDER',
+                ),
+                name: 'Qrific - New Order',
+            },
+            subject: `Order Confirmation - ${order.orderNumber}`,
+            html: `<p>Order Number: ${order.orderNumber}</p>
+            <p>Order Date: ${new Date(order.createdAt).toLocaleDateString()}</p>
+            <p>Order Time: ${new Date(order.createdAt).toLocaleTimeString()}</p>
+            <p>Shipping Method: ${order.shippingMethod}</p>
+            <p>Customer Email: ${order.email}</p>
+            <p>Customer Phone: ${order.phone}</p>
+            <p>Customer Address: ${order.address}</p>
+            <p>Items:</p>
+            <ul>
+                ${order.items.map((item) => `<li>${item.productTitle} - ${item.variantTitle} - ${item.quantity}</li>`).join('')}
+            </ul>
+            `,
+        };
+        try {
+            await SendGrid.send(email);
+            Logger.log(
+                `Confirmation email sent successfully for order ${order.orderNumber} to admin`,
+                'EmailService',
+            );
+            return true;
+        } catch (error) {
+            Logger.error(error.response?.body || error.message, 'EmailService');
+            throw error;
+        }
+    }
+
     async sendOrderConfirmation(order: Order & { items: OrderItem[] }) {
         Logger.log(
             `Sending confirmation email for order ${order.orderNumber}`,
