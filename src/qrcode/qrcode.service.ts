@@ -54,7 +54,6 @@ export class QrcodeService {
 
     async createQrCode(createOrderDto: CreateOrderDto) {
         const alphabet = 'ABCDEFGHJKPMNQRXTVWYZ123456789';
-        const nanoid = customAlphabet(alphabet, 9);
 
         // Calculate total quantity from order items
         const totalQuantity = createOrderDto.line_items.reduce(
@@ -65,6 +64,7 @@ export class QrcodeService {
         // Create multiple QR codes
         const qrcodes = await Promise.all(
             Array.from({ length: totalQuantity }).map(async () => {
+                const nanoid = customAlphabet(alphabet, 9);
                 return this.prismaService.qrcode.create({
                     data: {
                         orderNumber: createOrderDto.external_id,

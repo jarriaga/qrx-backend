@@ -30,6 +30,10 @@ export class ShippingAddressDto {
     state: string;
 
     @IsString()
+    @IsOptional()
+    region?: string;
+
+    @IsString()
     @IsNotEmpty()
     phone: string;
 

@@ -169,6 +169,7 @@ export class CheckoutService {
                             address1: updatedOrder.address,
                             city: updatedOrder.city,
                             state: updatedOrder.state,
+                            region: updatedOrder.state,
                             zip: updatedOrder.zipCode,
                             country: updatedOrder.country,
                             phone: updatedOrder.phone,

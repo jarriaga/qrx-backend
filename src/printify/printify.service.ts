@@ -174,114 +174,111 @@ export class PrintifyService {
             let qrCodeIndex = 0;
 
             // Map line items with their QR codes and print details
-            const lineItemsWithPrintDetails = await Promise.all(
-                createOrderDto.line_items.map(async (item) => {
-                    // Create array to store print details for each quantity
-                    const itemPrintDetails = [];
+            const lineItems = [];
 
-                    // Generate print details for each quantity of this line item
-                    for (let i = 0; i < item.quantity; i++) {
-                        const qrCode = qrCodes[qrCodeIndex];
-
-                        // Generate and upload QR code
-                        const qrCodeBase64 = await this.generateQRCode(
-                            qrCode.urlCode,
-                        );
-                        const uploadedImageUrl = await this.uploadDesign(
-                            qrCodeBase64,
-                            `${createOrderDto.external_id}-${qrCodeIndex}`,
-                        );
-
-                        // Create print details for this QR code
-                        const printDetails = {
-                            placeholders: [
-                                {
-                                    position: 'back',
-                                    images: [
-                                        {
-                                            id: uploadedImageUrl.id,
-                                            type: 'image/png',
-                                            height: 1000,
-                                            width: 1000,
-                                            x: 0.5000000000000001,
-                                            y: 0.5,
-                                            scale: 0.6442298892100188,
-                                            angle: 0,
-                                        },
-                                        {
-                                            id: '6727134776dd9e38e5652f69',
-                                            name: 'qrific_cat.svg',
-                                            type: 'image/png',
-                                            height: 273,
-                                            width: 641,
-                                            x: 0.5000000000000001,
-                                            y: 0.21886922850787743,
-                                            scale: 0.6442298892100183,
-                                            angle: 0,
-                                            src: 'https://pfy-prod-image-storage.s3.us-east-2.amazonaws.com/20435315/38c96700-7ab8-41a1-be6d-824bc616bd59',
-                                        },
-                                        {
-                                            id: '67271592a0be91703554a77d',
-                                            name: 'Group 58.svg',
-                                            type: 'image/png',
-                                            height: 199,
-                                            width: 638,
-                                            x: 0.5000000000000001,
-                                            y: 0.8509497999673548,
-                                            scale: 0.3543905314618505,
-                                            angle: 0,
-                                            src: 'https://pfy-prod-image-storage.s3.us-east-2.amazonaws.com/20435315/56c75257-d345-4e0e-8673-2b275a724e8c',
-                                        },
-                                        {
-                                            id: '6727159642cc89acd4317242',
-                                            name: 'QRIFIC.ME.svg',
-                                            type: 'image/png',
-                                            height: 89,
-                                            width: 526,
-                                            x: 0.5000000000000001,
-                                            y: 0.8509497999673548,
-                                            scale: 0.28390904950777607,
-                                            angle: 0,
-                                            src: 'https://pfy-prod-image-storage.s3.us-east-2.amazonaws.com/20435315/b3bd32ef-2cef-4808-8318-0fb5df402952',
-                                        },
-                                        {
-                                            id: '94440fa7-2066-bc92-d65f-0f21dbace544',
-                                            name: '',
-                                            type: 'text/svg',
-                                            height: 1,
-                                            width: 1,
-                                            x: 0.5000000000000001,
-                                            y: 0.04616005405806614,
-                                            scale: 0.4317238384180558,
-                                            angle: 0,
-                                            font_family: 'Paytone One',
-                                            font_size: 200,
-                                            font_weight: 400,
-                                            font_color: '#000000',
-                                            input_text: 'scan me',
-                                        },
-                                    ],
-                                },
-                            ],
-                        };
-
-                        itemPrintDetails.push(printDetails);
-                        qrCodeIndex++;
-                    }
-
-                    // Return line item with print details
-                    return {
-                        ...item,
-                        print_details: itemPrintDetails[0], // Use first print details since Printify API expects one per line item
+            for (const item of createOrderDto.line_items) {
+                // For each quantity of the item, create a separate line item with unique print details
+                for (let i = 0; i < item.quantity; i++) {
+                    const qrCode = qrCodes[qrCodeIndex];
+    
+                    // Generate and upload QR code
+                    const qrCodeBase64 = await this.generateQRCode(qrCode.urlCode);
+                    const urlParts = qrCode.urlCode.split('/');
+                    const extractedCode = urlParts[urlParts.length - 1];
+    
+                    const uploadedImageUrl = await this.uploadDesign(
+                        qrCodeBase64,
+                        `ORDER-${createOrderDto.external_id}-${extractedCode}`,
+                    );
+    
+                    // Create print details for this specific item
+                    const printDetails = {
+                        placeholders: [
+                            {
+                                position: 'back',
+                                images: [
+                                    {
+                                        id: uploadedImageUrl.id,
+                                        type: 'image/png',
+                                        height: 1000,
+                                        width: 1000,
+                                        x: 0.5000000000000001,
+                                        y: 0.5,
+                                        scale: 0.6442298892100188,
+                                        angle: 0,
+                                    },
+                                    {
+                                        id: '6727134776dd9e38e5652f69',
+                                        name: 'qrific_cat.svg',
+                                        type: 'image/png',
+                                        height: 273,
+                                        width: 641,
+                                        x: 0.5000000000000001,
+                                        y: 0.21886922850787743,
+                                        scale: 0.6442298892100183,
+                                        angle: 0,
+                                        src: 'https://pfy-prod-image-storage.s3.us-east-2.amazonaws.com/20435315/38c96700-7ab8-41a1-be6d-824bc616bd59',
+                                    },
+                                    {
+                                        id: '67271592a0be91703554a77d',
+                                        name: 'Group 58.svg',
+                                        type: 'image/png',
+                                        height: 199,
+                                        width: 638,
+                                        x: 0.5000000000000001,
+                                        y: 0.8509497999673548,
+                                        scale: 0.3543905314618505,
+                                        angle: 0,
+                                        src: 'https://pfy-prod-image-storage.s3.us-east-2.amazonaws.com/20435315/56c75257-d345-4e0e-8673-2b275a724e8c',
+                                    },
+                                    {
+                                        id: '6727159642cc89acd4317242',
+                                        name: 'QRIFIC.ME.svg',
+                                        type: 'image/png',
+                                        height: 89,
+                                        width: 526,
+                                        x: 0.5000000000000001,
+                                        y: 0.8509497999673548,
+                                        scale: 0.28390904950777607,
+                                        angle: 0,
+                                        src: 'https://pfy-prod-image-storage.s3.us-east-2.amazonaws.com/20435315/b3bd32ef-2cef-4808-8318-0fb5df402952',
+                                    },
+                                    {
+                                        id: '94440fa7-2066-bc92-d65f-0f21dbace544',
+                                        name: '',
+                                        type: 'text/svg',
+                                        height: 1,
+                                        width: 1,
+                                        x: 0.5000000000000001,
+                                        y: 0.04616005405806614,
+                                        scale: 0.4317238384180558,
+                                        angle: 0,
+                                        font_family: 'Paytone One',
+                                        font_size: 200,
+                                        font_weight: 400,
+                                        font_color: '#000000',
+                                        input_text: 'scan me',
+                                    },
+                                ],
+                            },
+                        ],
                     };
-                }),
-            );
+    
+                    // Add as a new line item with quantity of 1
+                    lineItems.push({
+                        ...item,
+                        quantity: 1, // Set quantity to 1 for each individual item
+                        print_areas: printDetails,
+                    });
+    
+                    qrCodeIndex++;
+                }
+            }
 
-            // Prepare the order data
+            // Prepare the order data with the expanded line items
             const orderData = {
-                external_id:
-                    createOrderDto.external_id || `order-${Date.now()}`,
-                line_items: lineItemsWithPrintDetails,
+                external_id: createOrderDto.external_id || `order-${Date.now()}`,
+                line_items: lineItems,
                 address_to: createOrderDto.address_to,
                 shipping_method: createOrderDto.shipping_method,
             };
