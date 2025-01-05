@@ -1,22 +1,330 @@
 {
-    "external_id": "my-order-1234567",
+    "external_id": "250103812095",
     "line_items": [
-        {
-            "product_id": "67271259e6b9cf8cea03926e",
-            "variant_id": "38163",
-            "quantity": 1
-        }
+      {
+        "product_id": "67271259e6b9cf8cea03926e",
+        "variant_id": "38163",
+        "quantity": 1,
+        "print_areas": [
+          {
+            "placeholders": [
+              {
+                "position": "back",
+                "images": [
+                  {
+                    "id": "6777b5162b755ff44429f6e6",
+                    "type": "image/png",
+                    "height": 1000,
+                    "width": 1000,
+                    "x": 0.5000000000000001,
+                    "y": 0.5,
+                    "scale": 0.6442298892100188,
+                    "angle": 0
+                  },
+                  {
+                    "id": "6727134776dd9e38e5652f69",
+                    "name": "qrific_cat.svg",
+                    "type": "image/png",
+                    "height": 273,
+                    "width": 641,
+                    "x": 0.5000000000000001,
+                    "y": 0.21886922850787743,
+                    "scale": 0.6442298892100183,
+                    "angle": 0,
+                    "src": "https://pfy-prod-image-storage.s3.us-east-2.amazonaws.com/20435315/38c96700-7ab8-41a1-be6d-824bc616bd59"
+                  },
+                  {
+                    "id": "67271592a0be91703554a77d",
+                    "name": "Group 58.svg",
+                    "type": "image/png",
+                    "height": 199,
+                    "width": 638,
+                    "x": 0.5000000000000001,
+                    "y": 0.8509497999673548,
+                    "scale": 0.3543905314618505,
+                    "angle": 0,
+                    "src": "https://pfy-prod-image-storage.s3.us-east-2.amazonaws.com/20435315/56c75257-d345-4e0e-8673-2b275a724e8c"
+                  },
+                  {
+                    "id": "6727159642cc89acd4317242",
+                    "name": "QRIFIC.ME.svg",
+                    "type": "image/png",
+                    "height": 89,
+                    "width": 526,
+                    "x": 0.5000000000000001,
+                    "y": 0.8509497999673548,
+                    "scale": 0.28390904950777607,
+                    "angle": 0,
+                    "src": "https://pfy-prod-image-storage.s3.us-east-2.amazonaws.com/20435315/b3bd32ef-2cef-4808-8318-0fb5df402952"
+                  },
+                  {
+                    "id": "94440fa7-2066-bc92-d65f-0f21dbace544",
+                    "name": "",
+                    "type": "text/svg",
+                    "height": 1,
+                    "width": 1,
+                    "x": 0.5000000000000001,
+                    "y": 0.04616005405806614,
+                    "scale": 0.4317238384180558,
+                    "angle": 0,
+                    "font_family": "Paytone One",
+                    "font_size": 200,
+                    "font_weight": 400,
+                    "font_color": "#000000",
+                    "input_text": "scan me"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "product_id": "67271259e6b9cf8cea03926e",
+        "variant_id": "38163",
+        "quantity": 1,
+        "print_areas": [
+          {
+            "placeholders": [
+              {
+                "position": "back",
+                "images": [
+                  {
+                    "id": "6777b516e81cbd14b755e2ef",
+                    "type": "image/png",
+                    "height": 1000,
+                    "width": 1000,
+                    "x": 0.5000000000000001,
+                    "y": 0.5,
+                    "scale": 0.6442298892100188,
+                    "angle": 0
+                  },
+                  {
+                    "id": "6727134776dd9e38e5652f69",
+                    "name": "qrific_cat.svg",
+                    "type": "image/png",
+                    "height": 273,
+                    "width": 641,
+                    "x": 0.5000000000000001,
+                    "y": 0.21886922850787743,
+                    "scale": 0.6442298892100183,
+                    "angle": 0,
+                    "src": "https://pfy-prod-image-storage.s3.us-east-2.amazonaws.com/20435315/38c96700-7ab8-41a1-be6d-824bc616bd59"
+                  },
+                  {
+                    "id": "67271592a0be91703554a77d",
+                    "name": "Group 58.svg",
+                    "type": "image/png",
+                    "height": 199,
+                    "width": 638,
+                    "x": 0.5000000000000001,
+                    "y": 0.8509497999673548,
+                    "scale": 0.3543905314618505,
+                    "angle": 0,
+                    "src": "https://pfy-prod-image-storage.s3.us-east-2.amazonaws.com/20435315/56c75257-d345-4e0e-8673-2b275a724e8c"
+                  },
+                  {
+                    "id": "6727159642cc89acd4317242",
+                    "name": "QRIFIC.ME.svg",
+                    "type": "image/png",
+                    "height": 89,
+                    "width": 526,
+                    "x": 0.5000000000000001,
+                    "y": 0.8509497999673548,
+                    "scale": 0.28390904950777607,
+                    "angle": 0,
+                    "src": "https://pfy-prod-image-storage.s3.us-east-2.amazonaws.com/20435315/b3bd32ef-2cef-4808-8318-0fb5df402952"
+                  },
+                  {
+                    "id": "94440fa7-2066-bc92-d65f-0f21dbace544",
+                    "name": "",
+                    "type": "text/svg",
+                    "height": 1,
+                    "width": 1,
+                    "x": 0.5000000000000001,
+                    "y": 0.04616005405806614,
+                    "scale": 0.4317238384180558,
+                    "angle": 0,
+                    "font_family": "Paytone One",
+                    "font_size": 200,
+                    "font_weight": 400,
+                    "font_color": "#000000",
+                    "input_text": "scan me"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "product_id": "67271259e6b9cf8cea03926e",
+        "variant_id": "38163",
+        "quantity": 1,
+        "print_areas": [
+          {
+            "placeholders": [
+              {
+                "position": "back",
+                "images": [
+                  {
+                    "id": "6777b517e11007dbe3ff97bd",
+                    "type": "image/png",
+                    "height": 1000,
+                    "width": 1000,
+                    "x": 0.5000000000000001,
+                    "y": 0.5,
+                    "scale": 0.6442298892100188,
+                    "angle": 0
+                  },
+                  {
+                    "id": "6727134776dd9e38e5652f69",
+                    "name": "qrific_cat.svg",
+                    "type": "image/png",
+                    "height": 273,
+                    "width": 641,
+                    "x": 0.5000000000000001,
+                    "y": 0.21886922850787743,
+                    "scale": 0.6442298892100183,
+                    "angle": 0,
+                    "src": "https://pfy-prod-image-storage.s3.us-east-2.amazonaws.com/20435315/38c96700-7ab8-41a1-be6d-824bc616bd59"
+                  },
+                  {
+                    "id": "67271592a0be91703554a77d",
+                    "name": "Group 58.svg",
+                    "type": "image/png",
+                    "height": 199,
+                    "width": 638,
+                    "x": 0.5000000000000001,
+                    "y": 0.8509497999673548,
+                    "scale": 0.3543905314618505,
+                    "angle": 0,
+                    "src": "https://pfy-prod-image-storage.s3.us-east-2.amazonaws.com/20435315/56c75257-d345-4e0e-8673-2b275a724e8c"
+                  },
+                  {
+                    "id": "6727159642cc89acd4317242",
+                    "name": "QRIFIC.ME.svg",
+                    "type": "image/png",
+                    "height": 89,
+                    "width": 526,
+                    "x": 0.5000000000000001,
+                    "y": 0.8509497999673548,
+                    "scale": 0.28390904950777607,
+                    "angle": 0,
+                    "src": "https://pfy-prod-image-storage.s3.us-east-2.amazonaws.com/20435315/b3bd32ef-2cef-4808-8318-0fb5df402952"
+                  },
+                  {
+                    "id": "94440fa7-2066-bc92-d65f-0f21dbace544",
+                    "name": "",
+                    "type": "text/svg",
+                    "height": 1,
+                    "width": 1,
+                    "x": 0.5000000000000001,
+                    "y": 0.04616005405806614,
+                    "scale": 0.4317238384180558,
+                    "angle": 0,
+                    "font_family": "Paytone One",
+                    "font_size": 200,
+                    "font_weight": 400,
+                    "font_color": "#000000",
+                    "input_text": "scan me"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "product_id": "67271259e6b9cf8cea03926e",
+        "variant_id": "38163",
+        "quantity": 1,
+        "print_areas": [
+          {
+            "placeholders": [
+              {
+                "position": "back",
+                "images": [
+                  {
+                    "id": "6777b5177335f5c98cfbc65a",
+                    "type": "image/png",
+                    "height": 1000,
+                    "width": 1000,
+                    "x": 0.5000000000000001,
+                    "y": 0.5,
+                    "scale": 0.6442298892100188,
+                    "angle": 0
+                  },
+                  {
+                    "id": "6727134776dd9e38e5652f69",
+                    "name": "qrific_cat.svg",
+                    "type": "image/png",
+                    "height": 273,
+                    "width": 641,
+                    "x": 0.5000000000000001,
+                    "y": 0.21886922850787743,
+                    "scale": 0.6442298892100183,
+                    "angle": 0,
+                    "src": "https://pfy-prod-image-storage.s3.us-east-2.amazonaws.com/20435315/38c96700-7ab8-41a1-be6d-824bc616bd59"
+                  },
+                  {
+                    "id": "67271592a0be91703554a77d",
+                    "name": "Group 58.svg",
+                    "type": "image/png",
+                    "height": 199,
+                    "width": 638,
+                    "x": 0.5000000000000001,
+                    "y": 0.8509497999673548,
+                    "scale": 0.3543905314618505,
+                    "angle": 0,
+                    "src": "https://pfy-prod-image-storage.s3.us-east-2.amazonaws.com/20435315/56c75257-d345-4e0e-8673-2b275a724e8c"
+                  },
+                  {
+                    "id": "6727159642cc89acd4317242",
+                    "name": "QRIFIC.ME.svg",
+                    "type": "image/png",
+                    "height": 89,
+                    "width": 526,
+                    "x": 0.5000000000000001,
+                    "y": 0.8509497999673548,
+                    "scale": 0.28390904950777607,
+                    "angle": 0,
+                    "src": "https://pfy-prod-image-storage.s3.us-east-2.amazonaws.com/20435315/b3bd32ef-2cef-4808-8318-0fb5df402952"
+                  },
+                  {
+                    "id": "94440fa7-2066-bc92-d65f-0f21dbace544",
+                    "name": "",
+                    "type": "text/svg",
+                    "height": 1,
+                    "width": 1,
+                    "x": 0.5000000000000001,
+                    "y": 0.04616005405806614,
+                    "scale": 0.4317238384180558,
+                    "angle": 0,
+                    "font_family": "Paytone One",
+                    "font_size": 200,
+                    "font_weight": 400,
+                    "font_color": "#000000",
+                    "input_text": "scan me"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
     ],
     "address_to": {
-        "first_name": "Jesus",
-        "last_name": "Barron",
-        "address1": "3511 Laurel Valley Lane",
-        "city": "Melissa",
-        "state": "TX",
-        "zip": "75454",
-        "country": "US",
-        "phone": "9723704629",
-        "email": "jarriagabarron@gmail.com"
+      "first_name": "jessus",
+      "last_name": "4test",
+      "address1": "350 Cypress Hill Drive ",
+      "city": "McKinney",
+      "state": "TX",
+      "region": "TX",
+      "zip": "75071",
+      "country": "US",
+      "phone": "+19723704629",
+      "email": "jarriagabarron@gmail.com"
     },
     "shipping_method": 1
-}
+  }
