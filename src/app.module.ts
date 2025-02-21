@@ -8,7 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { UserService } from './user/user.service';
 import { QrcodeService } from './qrcode/qrcode.service';
 import { UserController } from './user/user.controller';
-import { PrintifyModule } from './printify/printify.module';
+import { PrintfulModule } from './printful/printful.module';
 import { CheckoutModule } from './checkout/checkout.module';
 import { EmailModule } from './email/email.module';
 @Module({
@@ -18,7 +18,7 @@ import { EmailModule } from './email/email.module';
         ConfigModule.forRoot({ isGlobal: true }),
         ActivationModule,
         AuthModule,
-        PrintifyModule,
+        PrintfulModule,
         EmailModule,
     ],
     controllers: [AppController, UserController],

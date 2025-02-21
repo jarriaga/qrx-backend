@@ -26,3 +26,20 @@ export class LineItemDto {
     @Type(() => PrintfulFileDto)
     files?: PrintfulFileDto[]; //Agregar archivos de impresión
 }
+
+
+//  @IsString()
+//     @IsNotEmpty()
+//     product_id: string;
+
+//     @IsString()
+//     @IsNotEmpty()
+//     variant_id: string;
+
+//     @IsNumber()
+//     quantity: number;
+
+//     @IsOptional()
+//     @ValidateNested()
+//     @Type(() => PrintDetailsDto)
+//     print_details?: PrintDetailsDto;

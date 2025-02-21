@@ -25,4 +25,5 @@ export class CreateOrderDto {
 
     @IsNumber()
     shipping_method: number;
+    address_to: any;
 }

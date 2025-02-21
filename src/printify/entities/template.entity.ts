@@ -1,3 +1,4 @@
+//Product Templates API
 export class Template {
     id: string;
     shopId: string;

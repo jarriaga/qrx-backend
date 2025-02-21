@@ -10,15 +10,14 @@ import { PrintDetailsDto } from './print-details.dto';
 
 export class LineItemDto {
     @IsString()
-    @IsNotEmpty()
-    product_id: string;
+    productId: string;
+
+    @IsNumber()
+    quantity: number;
 
     @IsString()
     @IsNotEmpty()
     variant_id: string;
-
-    @IsNumber()
-    quantity: number;
 
     @IsOptional()
     @ValidateNested()

@@ -5,7 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { customAlphabet } from 'nanoid';
 import { EmailService } from 'src/email/email.service';
-import { PrintifyService } from 'src/printify/printify.service';
+import { PrintfulService } from 'src/printful/printful.service';
 @Injectable()
 export class CheckoutService {
     private stripe: Stripe;
@@ -14,7 +14,7 @@ export class CheckoutService {
         private prisma: PrismaService,
         private configService: ConfigService,
         private emailService: EmailService,
-        private printifyService: PrintifyService,
+        private printfulService: PrintfulService,
     ) {
         this.stripe = new Stripe(this.configService.get('STRIPE_SECRET_KEY'), {
             apiVersion: '2024-11-20.acacia',
@@ -244,8 +244,8 @@ export class CheckoutService {
 
     async verifyAndCalculatePrices(createOrderDto: CreateOrderDto) {
         try {
-            // 1. Get product from Printify
-            const product = await this.printifyService.getProducts();
+            // 1. Get product from Printify //printful
+            const product = await this.printfulService.getProducts();
 
             // 2. Verify and calculate items total
             const verifiedItems = createOrderDto.items.map((item) => {
@@ -275,16 +275,15 @@ export class CheckoutService {
             );
 
             // 4. Calculate shipping through Printify
-            const shippingRates = await this.printifyService.calculateShipping({
-                address_to: {
+            const shippingRates = await this.printfulService.calculateShipping({
+                address: {
                     ...createOrderDto.address,
                     first_name: createOrderDto.address.firstName,
                     last_name: createOrderDto.address.lastName,
                     zip: createOrderDto.address.zipCode,
                     address1: createOrderDto.address.address,
                 },
-                line_items: verifiedItems.map((item) => ({
-                    product_id: item.product.id,
+                items: verifiedItems.map((item) => ({
                     variant_id: item.variant.id,
                     quantity: item.quantity,
                 })),
