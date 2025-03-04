@@ -274,6 +274,8 @@ export class CheckoutService {
                 0,
             );
 
+            console.log('Verified Subtotal:', verifiedSubtotal);
+
             // 4. Calculate shipping through Printify
             const shippingRates = await this.printfulService.calculateShipping({
                 address: {
@@ -284,17 +286,31 @@ export class CheckoutService {
                     address1: createOrderDto.address.address,
                 },
                 items: verifiedItems.map((item) => ({
-                    variant_id: item.variant.id,
+                    variant_id: parseInt(item.variant.id),
                     quantity: item.quantity,
                 })),
+                recipient: {
+                    first_name: createOrderDto.address.firstName,
+                    last_name: createOrderDto.address.lastName,
+                    address1: createOrderDto.address.address,
+                    city: createOrderDto.address.city,
+                    zip: createOrderDto.address.zipCode,
+                    country: createOrderDto.address.country,
+                    state: createOrderDto.address.state,
+                    phone: createOrderDto.address.phone,
+                    email: createOrderDto.address.email,
+                }
             });
+
+            console.log('Shipping rates:', shippingRates);
+
 
             Logger.debug('Shipping rates:', shippingRates);
             // 5. Get shipping cost based on method
             const verifiedShipping =
                 createOrderDto.shippingMethod === 'express'
                     ? shippingRates.express
-                    : shippingRates.standard;
+                    : shippingRates.standard; //
 
             Logger.debug('Verified shipping:', verifiedShipping);
 
@@ -323,10 +339,13 @@ export class CheckoutService {
                 taxRate,
                 taxName,
             };
+            
         } catch (error) {
             Logger.error('Error verifying prices:', error);
             throw new Error(`Failed to verify prices: ${error.message}`);
         }
+
+
     }
 
     private calculateTaxRate(state: string = 'TX'): {
