@@ -30,7 +30,7 @@ export class CheckoutService {
         return YYMMDD;
     }
 
-    async createPaymentIntent(createOrderDto: CreateOrderDto) {
+    async createPaymentIntent(createOrderDto: |CreateOrderDto) {
         try {
             const {
                 verifiedTotal,
@@ -276,19 +276,8 @@ export class CheckoutService {
 
             console.log('Verified Subtotal:', verifiedSubtotal);
 
-            // 4. Calculate shipping through Printify
+            // 4. Calculate shipping through Printful
             const shippingRates = await this.printfulService.calculateShipping({
-                address: {
-                    ...createOrderDto.address,
-                    first_name: createOrderDto.address.firstName,
-                    last_name: createOrderDto.address.lastName,
-                    zip: createOrderDto.address.zipCode,
-                    address1: createOrderDto.address.address,
-                },
-                items: verifiedItems.map((item) => ({
-                    variant_id: parseInt(item.variant.id),
-                    quantity: item.quantity,
-                })),
                 recipient: {
                     first_name: createOrderDto.address.firstName,
                     last_name: createOrderDto.address.lastName,
@@ -299,7 +288,12 @@ export class CheckoutService {
                     state: createOrderDto.address.state,
                     phone: createOrderDto.address.phone,
                     email: createOrderDto.address.email,
-                }
+                    zipCode: undefined
+                },
+                items: verifiedItems.map((item) => ({
+                    variant_id: parseInt(item.variant.id),
+                    quantity: item.quantity,
+                }))
             });
 
             console.log('Shipping rates:', shippingRates);

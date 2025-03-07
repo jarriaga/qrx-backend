@@ -461,50 +461,58 @@ export class PrintfulService {
             Logger.debug('Calculating shipping costs...', 'PrintfulService');
             Logger.debug(`Shop ID: ${this.shopId}`, 'PrintfulService');
     
-            
-            // Printful para calcular costos de envío
+            if (!data.recipient || !data.items || data.items.length === 0) {
+                throw new Error('Datos inválidos para el cálculo de envío.');
+            }
+    
+            // Endpoint de Printful
             const endpoint = `${this.baseUrl}/shipping/rates`;
     
+            // Construir requestBody con `recipient`
             const requestBody = {
                 recipient: {
-                    name: `${data.address.firstName} ${data.address.lastName}`,
-                    address1: data.address.address, 
-                    city: data.address.city,
-                    state_code: data.address.state,
-                    country_code: data.address.country, 
-                    zip: data.address.zipCode 
+                    name: `${data.recipient.first_name} ${data.recipient.last_name}`,
+                    address1: data.recipient.address1,
+                    city: data.recipient.city,
+                    state_code: data.recipient.state,
+                    country_code: data.recipient.country,
+                    zip: data.recipient.zipCode
                 },
                 items: data.items.map(item => ({
-                    variant_id: item.variant_id,  
-                    quantity: item.quantity 
+                    variant_id: item.variant_id,
+                    quantity: item.quantity
                 }))
             };
     
-            // requestBody es correcto antes de enviarlo
             Logger.debug('Shipping request body:', JSON.stringify(requestBody, null, 2));
     
-            //solicitud POST a la API de Printful
             const response = await axios.post(endpoint, requestBody, {
                 headers: this.headers,
             });
     
+            if (!response.data || !response.data.result) {
+                throw new Error('Respuesta inválida de Printful.');
+            }
+    
             const shippingRates = response.data.result;
     
-            const selectedRate = shippingRates.find(rate => rate.service_name.includes('Standard'));
-    
-            if (!selectedRate) {
-                throw new Error('No se encontró una tarifa de envío válida.');
+            if (!shippingRates || shippingRates.length === 0) {
+                throw new Error('No se encontraron tarifas de envío.');
             }
+    
+            const selectedRate = shippingRates.find(rate => rate.service_name.includes('Standard')) || shippingRates[0];
+    
+            Logger.debug('Selected Shipping Rate:', selectedRate);
     
             return selectedRate.rate;
     
         } catch (error) {
-            console.error('Shipping calculation failed:', error.message);
+            Logger.error('Shipping calculation failed:', error.message);
             throw new HttpException(
                 `Failed to calculate shipping: ${error.message}`,
                 HttpStatus.INTERNAL_SERVER_ERROR,
             );
         }
-    }
+    }    
     
 }

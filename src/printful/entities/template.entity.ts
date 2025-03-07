@@ -10,4 +10,6 @@ export class Template {
         retail_price: string;
     }[];
     isPersonalized: boolean;
+    items: any;
+    shippingCost: number;
 }

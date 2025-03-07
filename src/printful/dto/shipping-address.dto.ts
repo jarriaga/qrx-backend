@@ -36,4 +36,5 @@ export class ShippingAddressDto {
     @IsEmail()
     @IsNotEmpty()
     email: string;
+    zipCode: any;
 }
