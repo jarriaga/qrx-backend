@@ -8,6 +8,7 @@ import { Template } from './entities/template.entity';
 import { PrintfulShopDto } from './dto/shop.dto';
 import { Logger } from '@nestjs/common';
 import { CalculateShippingDto } from './dto/calculate-shipping.dto';
+import { error } from 'console';
 
 @Injectable()
 export class PrintfulService {
@@ -58,7 +59,7 @@ export class PrintfulService {
         try {
             console.log('Starting image upload to Printful...');
 
-            // Remove the data:image/png;base64, prefix if it exists
+           
             const base64Data = imageBase64.replace(
                 /^data:image\/\w+;base64,/,
                 '',
@@ -249,7 +250,6 @@ export class PrintfulService {
                 ],
             };
 
-            // Prepare the order data
             const orderData = {
                 external_id:
                     createOrderDto.external_id || `order-${Date.now()}`,
@@ -456,63 +456,70 @@ export class PrintfulService {
         return uploadImageResponse;
     }
 
-    async calculateShipping(data: CalculateShippingDto): Promise<any> {
-        try {
-            Logger.debug('Calculating shipping costs...', 'PrintfulService');
-            Logger.debug(`Shop ID: ${this.shopId}`, 'PrintfulService');
-    
-            if (!data.recipient || !data.items || data.items.length === 0) {
-                throw new Error('Datos inválidos para el cálculo de envío.');
-            }
-    
-            // Endpoint de Printful
-            const endpoint = `${this.baseUrl}/shipping/rates`;
-    
-            // Construir requestBody con `recipient`
-            const requestBody = {
-                recipient: {
-                    name: `${data.recipient.first_name} ${data.recipient.last_name}`,
-                    address1: data.recipient.address1,
-                    city: data.recipient.city,
-                    state_code: data.recipient.state,
-                    country_code: data.recipient.country,
-                    zip: data.recipient.zipCode
-                },
-                items: data.items.map(item => ({
-                    variant_id: item.variant_id,
-                    quantity: item.quantity
-                }))
-            };
-    
-            Logger.debug('Shipping request body:', JSON.stringify(requestBody, null, 2));
-    
-            const response = await axios.post(endpoint, requestBody, {
-                headers: this.headers,
-            });
-    
-            if (!response.data || !response.data.result) {
-                throw new Error('Respuesta inválida de Printful.');
-            }
-    
-            const shippingRates = response.data.result;
-    
-            if (!shippingRates || shippingRates.length === 0) {
-                throw new Error('No se encontraron tarifas de envío.');
-            }
-    
-            const selectedRate = shippingRates.find(rate => rate.service_name.includes('Standard')) || shippingRates[0];
-    
-            Logger.debug('Selected Shipping Rate:', selectedRate);
-    
-            return selectedRate.rate;
-    
-        } catch (error) {
-            Logger.error('Shipping calculation failed:', error.message);
-            throw new HttpException(
-                `Failed to calculate shipping: ${error.message}`,
-                HttpStatus.INTERNAL_SERVER_ERROR,
-            );
+async calculateShipping(data: CalculateShippingDto): Promise<any> {
+    try {
+        Logger.debug('Calculating shipping costs...', 'PrintfulService');
+
+     
+        if (!data.recipient.state_code || data.recipient.state_code.trim() === "") {
+            console.error("🚨 ERROR: state_code está vacío o no es válido:", data.recipient.state_code);
+            throw new Error("🚨 ERROR: state_code está vacío o no es válido.");
         }
-    }    
-    
+
+        if (!data.recipient.zip || data.recipient.zip.trim() === "") {
+            console.error("🚨 ERROR: zip está vacío o no es válido:", data.recipient.zip);
+            throw new Error("🚨 ERROR: zip está vacío o no es válido.");
+        }
+
+
+        const validItems = data.items.filter(item => item.variant_id && Number(item.variant_id) > 0);
+        if (validItems.length === 0) {
+            console.error("🚨 ERROR: Todos los `variant_id` son inválidos:", data.items);
+            throw new Error("🚨 ERROR: `variant_id` inválidos o faltantes.");
+        }
+
+        
+        const requestBody = {
+            recipient: {
+                name: `${data.recipient.first_name} ${data.recipient.last_name}`,
+                address1: data.recipient.address1,
+                city: data.recipient.city,
+                state_code: data.recipient.state_code.trim(),
+                country_code: data.recipient.country.trim().toUpperCase(), 
+                phone: data.recipient.phone,
+                email: data.recipient.email,
+            },
+            items: validItems.map(item => ({
+                variant_id: Number(item.variant_id), 
+                quantity: item.quantity,
+            })),
+        };
+
+        const headers = {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${process.env.PRINTFUL_API_KEY}` 
+        };
+
+        const response = await axios.post(`${this.baseUrl}/shipping/rates`, requestBody, { headers });
+
+        if (!response.data || !response.data.result) {
+            throw new Error('Respuesta inválida de Printful.');
+        }
+
+        const shippingRates = response.data.result;
+        if (!shippingRates || shippingRates.length === 0) {
+            throw new Error('No se encontraron tarifas de envío.');
+        }
+
+        const selectedRate = shippingRates.find(rate => rate.service_name.includes('Standard')) || shippingRates[0];
+
+        Logger.debug('✅ Tarifa de envío seleccionada:', selectedRate);
+        return selectedRate.rate;
+
+    } catch (error) {
+        Logger.error('Shipping calculation failed:', error.message);
+        throw new HttpException(`Failed to calculate shipping: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+}
+
 }

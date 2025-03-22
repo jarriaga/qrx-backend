@@ -45,13 +45,7 @@ export class PrintfulController {
     }
 
     @Post('calculate-shipping')
-    async calculateShipping(@Body() calculateShippingDto: CalculateShippingDto) {
-        console.log('calculate-shipping request:', calculateShippingDto);
-        
-        if (!calculateShippingDto.recipient || !calculateShippingDto.items || calculateShippingDto.items.length === 0) {
-            throw new HttpException('Datos inválidos para calcular el envío.', HttpStatus.BAD_REQUEST);
-        }
-    
-        return await this.printfulService.calculateShipping(calculateShippingDto);
+    async calculateShipping(@Body() data: CalculateShippingDto) {
+        return this.printfulService.calculateShipping(data);
     }
 }

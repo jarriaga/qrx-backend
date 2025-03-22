@@ -19,15 +19,19 @@ export class ShippingAddressDto {
 
     @IsString()
     @IsNotEmpty()
-    zip: string;
+    zip: string;  
 
     @IsString()
     @IsNotEmpty()
-    country: string;
+    country: string;  
+
+    @IsString()
+    @IsNotEmpty()
+    state_code: string; 
 
     @IsString()
     @IsOptional()
-    state: string;
+    state: string;  
 
     @IsString()
     @IsNotEmpty()
@@ -36,5 +40,12 @@ export class ShippingAddressDto {
     @IsEmail()
     @IsNotEmpty()
     email: string;
-    zipCode: any;
+
+    @IsString()
+    @IsOptional()
+    zipCode?: string;  
+
+    @IsString()
+    @IsOptional()
+    country_code?: string; 
 }
