@@ -30,7 +30,7 @@ export class CheckoutService {
         return YYMMDD;
     }
 
-    async createPaymentIntent(createOrderDto: |CreateOrderDto) {
+    async createPaymentIntent(createOrderDto: CreateOrderDto) {
         try {
             const {
                 verifiedTotal,
@@ -68,7 +68,7 @@ export class CheckoutService {
                     taxName,
                 },
             });
-         
+
             const order = await this.prisma.$transaction(async (prisma) => {
                 const order = await prisma.order.create({
                     data: {
@@ -155,7 +155,6 @@ export class CheckoutService {
                     Logger.error(
                         `Failed to send confirmation email: ${emailError.message}`,
                     );
-                  
                 }
 
                 return updatedOrder;
@@ -238,18 +237,20 @@ export class CheckoutService {
 
     async verifyAndCalculatePrices(createOrderDto: CreateOrderDto) {
         try {
-   
             const product = await this.printfulService.getProducts();
 
             const verifiedItems = createOrderDto.items.map((item) => {
                 const variant = product.variants.find(
-                    (v) => v.id === parseInt(item.variant.id),
+                    (v) => v.variant_id === parseInt(item.variant.id),
                 );
                 if (!variant) {
                     throw new Error(`Variant not found: ${item.variant.id}`);
                 }
 
-                if (variant.price !== item.variant.price) {
+                if (
+                    Number(variant.retail_price) * 100 !==
+                    Number(item.variant.price)
+                ) {
                     throw new Error(
                         `Price mismatch for variant ${item.variant.id}`,
                     );
@@ -257,19 +258,20 @@ export class CheckoutService {
 
                 return {
                     ...item,
-                    verifiedPrice: variant.price,
+                    verifiedPrice: Math.round(
+                        Number(variant.retail_price) * 100,
+                    ),
                 };
             });
 
-           
             const verifiedSubtotal = verifiedItems.reduce(
                 (sum, item) => sum + item.verifiedPrice * item.quantity,
                 0,
             );
 
-            console.log('Verified Subtotal:', verifiedSubtotal);
+            console.log('Verified Subtotal (cents):', verifiedSubtotal);
 
-            console.log("Shipping Data Sent to Printful:", {
+            console.log('Shipping Data Sent to Printful:', {
                 recipient: {
                     first_name: createOrderDto.address.firstName,
                     last_name: createOrderDto.address.lastName,
@@ -287,58 +289,53 @@ export class CheckoutService {
                 })),
             });
 
- const stateCode = createOrderDto.address.state 
- ? createOrderDto.address.state.trim().toUpperCase().replace('.', '') 
- : "N/A";
+            const shippingRates = await this.printfulService.calculateShipping({
+                recipient: {
+                    first_name: createOrderDto.address.firstName || 'N/A',
+                    last_name: createOrderDto.address.lastName || 'N/A',
+                    address1: createOrderDto.address.address || 'N/A',
+                    city: createOrderDto.address.city || 'N/A',
+                    state_code: createOrderDto.address.state
+                        ? createOrderDto.address.state.trim().toUpperCase()
+                        : 'N/A',
+                    zip: createOrderDto.address.zipCode || '00000',
+                    country_code: createOrderDto.address.country
+                        ? createOrderDto.address.country.trim().toUpperCase()
+                        : 'MX',
+                    phone: createOrderDto.address.phone || '0000000000',
+                    email:
+                        createOrderDto.address.email || 'no-email@example.com',
+                    state: createOrderDto.address.state || 'N/A',
+                    country: createOrderDto.address.country || 'N/A',
+                },
+                items: createOrderDto.items
+                    .map((item) => ({
+                        variant_id:
+                            Number(item.variant.id) > 0
+                                ? Number(item.variant.id)
+                                : 0,
+                        quantity: item.quantity || 1,
+                    }))
+                    .filter((item) => item.variant_id > 0),
+            });
 
-let zipCode = createOrderDto.address.zipCode ? createOrderDto.address.zipCode.trim() : "00000";
-let countryCode = createOrderDto.address.country ? createOrderDto.address.country.trim().toUpperCase() : "MX";
+            Logger.debug('Shipping rates:', shippingRates);
 
-const shippingRates = await this.printfulService.calculateShipping({
-    recipient: {
-        first_name: createOrderDto.address.firstName || "N/A",
-        last_name: createOrderDto.address.lastName || "N/A",
-        address1: createOrderDto.address.address || "N/A",
-        city: createOrderDto.address.city || "N/A",
-        state_code: createOrderDto.address.state ? createOrderDto.address.state.trim().toUpperCase() : "N/A",
-        zip: createOrderDto.address.zipCode || "00000",
-        country_code: createOrderDto.address.country ? createOrderDto.address.country.trim().toUpperCase() : "MX", 
-        phone: createOrderDto.address.phone || "0000000000",
-        email: createOrderDto.address.email || "no-email@example.com",
-        state: createOrderDto.address.state || "N/A", 
-        country: createOrderDto.address.country || "N/A",
-    },
-    items: createOrderDto.items.map((item) => ({
-        variant_id: Number(item.variant.id) > 0 ? Number(item.variant.id) : 0, 
-        quantity: item.quantity || 1,
-    })).filter(item => item.variant_id > 0),
-});
+            const verifiedShipping = Math.round(Number(shippingRates) * 100);
 
+            Logger.debug('Verified shipping (cents):', verifiedShipping);
 
-
-
-Logger.debug('Shipping rates:', shippingRates);
-         
-            const verifiedShipping =
-                createOrderDto.shippingMethod === 'express'
-                    ? shippingRates.express
-                    : shippingRates.standard; //
-
-            Logger.debug('Verified shipping:', verifiedShipping);
-
-   
             const { rate: taxRate, name: taxName } =
                 this.calculateTaxRate('TX');
             const taxAmount = Math.round(verifiedSubtotal * taxRate);
 
-            Logger.debug('Tax calculation:', {
+            Logger.debug('Tax calculation (cents):', {
                 state: createOrderDto.address.state,
                 taxRate,
                 taxName,
                 taxAmount,
             });
 
-       
             const verifiedTotal =
                 verifiedSubtotal + verifiedShipping + taxAmount;
 
@@ -351,13 +348,10 @@ Logger.debug('Shipping rates:', shippingRates);
                 taxRate,
                 taxName,
             };
-            
         } catch (error) {
             Logger.error('Error verifying prices:', error);
             throw new Error(`Failed to verify prices: ${error.message}`);
         }
-
-
     }
 
     private calculateTaxRate(state: string = 'TX'): {
