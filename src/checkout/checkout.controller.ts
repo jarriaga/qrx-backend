@@ -2,8 +2,9 @@ import {
     Controller,
     Post,
     Body,
-    Headers, RawBodyRequest,
-    Req
+    Headers,
+    RawBodyRequest,
+    Req,
 } from '@nestjs/common';
 import { CheckoutService } from './checkout.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -25,9 +26,12 @@ export class CheckoutController {
     }
 
     @Post('order-status')
-    getOrderStatus(@Body('email') email: string, @Body('orderNumber') orderNumber: string) {
+    getOrderStatus(
+        @Body('email') email: string,
+        @Body('orderNumber') orderNumber: string,
+    ) {
         return this.checkoutService.getOrderStatus(email, orderNumber);
-    }    
+    }
 
     @Post('webhook')
     handleWebhook(

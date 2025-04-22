@@ -18,7 +18,7 @@ export class CreateTemplateDto {
     description: string;
 
     @IsNotEmpty()
-    blueprint_id: number;
+    product_id: number;
 
     @IsNotEmpty()
     print_provider_id: number;
@@ -30,4 +30,5 @@ export class CreateTemplateDto {
     @ValidateNested({ each: true })
     @Type(() => VariantDto)
     variants: VariantDto[];
+    blueprint_id: any;
 }

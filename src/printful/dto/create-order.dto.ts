@@ -21,8 +21,9 @@ export class CreateOrderDto {
 
     @ValidateNested()
     @Type(() => ShippingAddressDto)
-    address_to: ShippingAddressDto;
+    shipping_address: ShippingAddressDto; //
 
     @IsNumber()
     shipping_method: number;
+    address_to: any;
 }

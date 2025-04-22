@@ -25,7 +25,8 @@ export class VariantDto {
     id: number;
 
     @IsNumber()
-    price: number;
+    @IsOptional()
+    price?: number;
 
     @IsBoolean()
     @IsOptional()

@@ -5,7 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { customAlphabet } from 'nanoid';
 import { EmailService } from 'src/email/email.service';
-import { PrintifyService } from 'src/printify/printify.service';
+import { PrintfulService } from 'src/printful/printful.service';
 @Injectable()
 export class CheckoutService {
     private stripe: Stripe;
@@ -14,7 +14,7 @@ export class CheckoutService {
         private prisma: PrismaService,
         private configService: ConfigService,
         private emailService: EmailService,
-        private printifyService: PrintifyService,
+        private printfulService: PrintfulService,
     ) {
         this.stripe = new Stripe(this.configService.get('STRIPE_SECRET_KEY'), {
             apiVersion: '2024-11-20.acacia',
@@ -44,7 +44,6 @@ export class CheckoutService {
             const alphabet = 'A0123456789';
             const nanoid = customAlphabet(alphabet, 6);
             let orderNumber = `${this.getOrderNumber()}${nanoid()}`;
-            // Check if order with order number already exists
             let orderExists;
             let isOrderNumberUnique = false;
             while (!isOrderNumberUnique) {
@@ -58,7 +57,6 @@ export class CheckoutService {
                 }
             }
 
-            // Create a payment intent with Stripe
             const paymentIntent = await this.stripe.paymentIntents.create({
                 amount: verifiedTotal,
                 currency: 'usd',
@@ -71,8 +69,6 @@ export class CheckoutService {
                 },
             });
 
-            // Create order in database using Prisma transaction
-            // Create order with verified amounts
             const order = await this.prisma.$transaction(async (prisma) => {
                 const order = await prisma.order.create({
                     data: {
@@ -137,7 +133,6 @@ export class CheckoutService {
                 throw new Error('Order not found');
             }
 
-            // Verify payment status with Stripe
             const paymentIntent =
                 await this.stripe.paymentIntents.retrieve(paymentIntentId);
 
@@ -151,7 +146,6 @@ export class CheckoutService {
                     include: { items: true },
                 });
 
-                // Send confirmation email
                 try {
                     await this.emailService.sendOrderConfirmation(updatedOrder);
                     Logger.log(
@@ -161,7 +155,6 @@ export class CheckoutService {
                     Logger.error(
                         `Failed to send confirmation email: ${emailError.message}`,
                     );
-                    // Don't throw the error as we don't want to roll back the order confirmation
                 }
 
                 return updatedOrder;
@@ -244,19 +237,20 @@ export class CheckoutService {
 
     async verifyAndCalculatePrices(createOrderDto: CreateOrderDto) {
         try {
-            // 1. Get product from Printify
-            const product = await this.printifyService.getProducts();
+            const product = await this.printfulService.getProducts();
 
-            // 2. Verify and calculate items total
             const verifiedItems = createOrderDto.items.map((item) => {
                 const variant = product.variants.find(
-                    (v) => v.id === parseInt(item.variant.id),
+                    (v) => v.variant_id === parseInt(item.variant.id),
                 );
                 if (!variant) {
                     throw new Error(`Variant not found: ${item.variant.id}`);
                 }
 
-                if (variant.price !== item.variant.price) {
+                if (
+                    Number(variant.retail_price) * 100 !==
+                    Number(item.variant.price)
+                ) {
                     throw new Error(
                         `Price mismatch for variant ${item.variant.id}`,
                     );
@@ -264,54 +258,84 @@ export class CheckoutService {
 
                 return {
                     ...item,
-                    verifiedPrice: variant.price,
+                    verifiedPrice: Math.round(
+                        Number(variant.retail_price) * 100,
+                    ),
                 };
             });
 
-            // 3. Calculate verified subtotal
             const verifiedSubtotal = verifiedItems.reduce(
                 (sum, item) => sum + item.verifiedPrice * item.quantity,
                 0,
             );
 
-            // 4. Calculate shipping through Printify
-            const shippingRates = await this.printifyService.calculateShipping({
-                address_to: {
-                    ...createOrderDto.address,
+            console.log('Verified Subtotal (cents):', verifiedSubtotal);
+
+            console.log('Shipping Data Sent to Printful:', {
+                recipient: {
                     first_name: createOrderDto.address.firstName,
                     last_name: createOrderDto.address.lastName,
-                    zip: createOrderDto.address.zipCode,
                     address1: createOrderDto.address.address,
+                    city: createOrderDto.address.city,
+                    zip: createOrderDto.address.zipCode,
+                    country_code: createOrderDto.address.country,
+                    state: createOrderDto.address.state,
+                    phone: createOrderDto.address.phone,
+                    email: createOrderDto.address.email,
                 },
-                line_items: verifiedItems.map((item) => ({
-                    product_id: item.product.id,
-                    variant_id: item.variant.id,
+                items: createOrderDto.items.map((item) => ({
+                    variant_id: Number(item.variant.id),
                     quantity: item.quantity,
                 })),
             });
 
+            const shippingRates = await this.printfulService.calculateShipping({
+                recipient: {
+                    first_name: createOrderDto.address.firstName || 'N/A',
+                    last_name: createOrderDto.address.lastName || 'N/A',
+                    address1: createOrderDto.address.address || 'N/A',
+                    city: createOrderDto.address.city || 'N/A',
+                    state_code: createOrderDto.address.state
+                        ? createOrderDto.address.state.trim().toUpperCase()
+                        : 'N/A',
+                    zip: createOrderDto.address.zipCode || '00000',
+                    country_code: createOrderDto.address.country
+                        ? createOrderDto.address.country.trim().toUpperCase()
+                        : 'MX',
+                    phone: createOrderDto.address.phone || '0000000000',
+                    email:
+                        createOrderDto.address.email || 'no-email@example.com',
+                    state: createOrderDto.address.state || 'N/A',
+                    country: createOrderDto.address.country || 'N/A',
+                },
+                items: createOrderDto.items
+                    .map((item) => ({
+                        variant_id:
+                            Number(item.variant.id) > 0
+                                ? Number(item.variant.id)
+                                : 0,
+                        quantity: item.quantity || 1,
+                    }))
+                    .filter((item) => item.variant_id > 0),
+            });
+
             Logger.debug('Shipping rates:', shippingRates);
-            // 5. Get shipping cost based on method
-            const verifiedShipping =
-                createOrderDto.shippingMethod === 'express'
-                    ? shippingRates.express
-                    : shippingRates.standard;
 
-            Logger.debug('Verified shipping:', verifiedShipping);
+            const verifiedShipping = Math.round(Number(shippingRates) * 100);
 
-            // 6. Calculate tax
+            Logger.debug('Verified shipping (cents):', verifiedShipping);
+
             const { rate: taxRate, name: taxName } =
                 this.calculateTaxRate('TX');
             const taxAmount = Math.round(verifiedSubtotal * taxRate);
 
-            Logger.debug('Tax calculation:', {
+            Logger.debug('Tax calculation (cents):', {
                 state: createOrderDto.address.state,
                 taxRate,
                 taxName,
                 taxAmount,
             });
 
-            // 7. Calculate verified total with tax
             const verifiedTotal =
                 verifiedSubtotal + verifiedShipping + taxAmount;
 
@@ -339,7 +363,6 @@ export class CheckoutService {
             CA: { rate: 0.0725, name: 'CA Sales Tax' },
             NY: { rate: 0.04, name: 'NY Sales Tax' },
             TX: { rate: 0.0625, name: 'TX Sales Tax' },
-            // Add more states as needed
         };
 
         return TAX_RATES[state] || { rate: 0, name: 'No Tax' };

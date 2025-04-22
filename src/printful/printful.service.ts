@@ -5,19 +5,20 @@ import * as qrcode from 'qrcode';
 import { CreateTemplateDto } from './dto/create-template.dto';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { Template } from './entities/template.entity';
-import { PrintifyShopDto } from './dto/shop.dto';
+import { PrintfulShopDto } from './dto/shop.dto';
 import { Logger } from '@nestjs/common';
 import { CalculateShippingDto } from './dto/calculate-shipping.dto';
+
 @Injectable()
-export class PrintifyService {
+export class PrintfulService {
     private readonly apiKey: string;
     private readonly baseUrl: string;
     private readonly shopId: string;
 
     constructor(private readonly configService: ConfigService) {
-        this.apiKey = this.configService.get('PRINTIFY_KEY');
-        this.baseUrl = this.configService.get('PRINTIFY_BASEURL');
-        this.shopId = this.configService.get('PRINTIFY_SHOP_ID');
+        this.apiKey = this.configService.get('PRINTFUL_API_KEY');
+        this.baseUrl = 'https://api.printful.com';
+        this.shopId = this.configService.get('PRINTFUL_SHOP_ID');
     }
 
     private get headers() {
@@ -55,9 +56,8 @@ export class PrintifyService {
         external_id: string = null,
     ): Promise<any> {
         try {
-            console.log('Starting image upload to Printify...');
+            console.log('Starting image upload to Printful...');
 
-            // Remove the data:image/png;base64, prefix if it exists
             const base64Data = imageBase64.replace(
                 /^data:image\/\w+;base64,/,
                 '',
@@ -72,7 +72,7 @@ export class PrintifyService {
             };
 
             const response = await axios.post(
-                `${this.baseUrl}/uploads/images.json`,
+                `${this.baseUrl}/files/add`,
                 uploadData,
                 {
                     headers: {
@@ -85,7 +85,7 @@ export class PrintifyService {
             console.log('Upload successful, response:', response.data);
 
             if (!response.data) {
-                throw new Error('Invalid response from Printify API');
+                throw new Error('Invalid response from Printful API');
             }
 
             return response.data;
@@ -146,7 +146,7 @@ export class PrintifyService {
             };
 
             const response = await axios.post(
-                `${this.baseUrl}/shops/${createTemplateDto.shop_id}/products.json`,
+                `${this.baseUrl}/stores/${createTemplateDto.shop_id}/products`,
                 productData,
                 {
                     headers: this.headers,
@@ -183,7 +183,6 @@ export class PrintifyService {
                         images: [
                             {
                                 id: uploadedImageUrl.id, // This will be replaced with the uploaded image id
-                                //name: 'qr-design.png',
                                 type: 'image/png',
                                 height: 1000,
                                 width: 1000,
@@ -191,7 +190,6 @@ export class PrintifyService {
                                 y: 0.5,
                                 scale: 0.6442298892100188,
                                 angle: 0,
-                                //src: uploadedImageUrl, // Use the newly uploaded image URL
                             },
                             {
                                 id: '6727134776dd9e38e5652f69',
@@ -250,7 +248,6 @@ export class PrintifyService {
                 ],
             };
 
-            // Prepare the order data
             const orderData = {
                 external_id:
                     createOrderDto.external_id || `order-${Date.now()}`,
@@ -268,13 +265,10 @@ export class PrintifyService {
             );
 
             const response = await axios.post(
-                `${this.baseUrl}/shops/${this.shopId}/orders.json`,
+                `${this.baseUrl}/stores/${this.shopId}/orders`,
                 orderData,
                 {
-                    headers: {
-                        Authorization: `Bearer ${this.apiKey}`,
-                        'Content-Type': 'application/json',
-                    },
+                    headers: this.headers,
                 },
             );
 
@@ -296,7 +290,7 @@ export class PrintifyService {
     async getOrderStatus(orderId: string, shopId: string): Promise<any> {
         try {
             const response = await axios.get(
-                `${this.baseUrl}/shops/${shopId}/orders/${orderId}.json`,
+                `${this.baseUrl}/stores/${shopId}/orders/${orderId}`,
                 {
                     headers: this.headers,
                 },
@@ -310,9 +304,9 @@ export class PrintifyService {
         }
     }
 
-    async getShops(): Promise<PrintifyShopDto[]> {
+    async getShops(): Promise<PrintfulShopDto[]> {
         try {
-            const response = await axios.get(`${this.baseUrl}/shops.json`, {
+            const response = await axios.get(`${this.baseUrl}/stores`, {
                 headers: {
                     Authorization: `Bearer ${this.apiKey}`,
                 },
@@ -329,7 +323,7 @@ export class PrintifyService {
     async getBlueprint(blueprintId: number): Promise<any> {
         try {
             const response = await axios.get(
-                `${this.baseUrl}/catalog/blueprints/${blueprintId}.json`,
+                `${this.baseUrl}/catalog/blueprints/${blueprintId}`,
                 {
                     headers: {
                         Authorization: `Bearer ${this.apiKey}`,
@@ -348,7 +342,7 @@ export class PrintifyService {
     async getPrintProviders(): Promise<any> {
         try {
             const response = await axios.get(
-                `${this.baseUrl}/catalog/print_providers.json`,
+                `${this.baseUrl}/catalog/print_providers`,
                 {
                     headers: {
                         Authorization: `Bearer ${this.apiKey}`,
@@ -370,7 +364,7 @@ export class PrintifyService {
     ): Promise<any> {
         try {
             const response = await axios.get(
-                `${this.baseUrl}/catalog/blueprints/${blueprintId}/print_providers/${printProviderId}/variants.json`,
+                `${this.baseUrl}/catalog/blueprints/${blueprintId}/print_providers/${printProviderId}/variants`,
                 {
                     headers: {
                         Authorization: `Bearer ${this.apiKey}`,
@@ -388,56 +382,26 @@ export class PrintifyService {
 
     async getProducts(): Promise<any> {
         try {
-            let response = await axios.get(
-                `${this.baseUrl}/shops/${this.shopId}/products.json`,
+            const response = await axios.get(`${this.baseUrl}/store/products`, {
+                headers: this.headers,
+            });
+
+            //get first product
+            const firstProduct = response.data.result[0];
+
+            const productDetails = await axios.get(
+                `${this.baseUrl}/store/products/${firstProduct.id}`,
                 {
                     headers: this.headers,
                 },
             );
-            const [product] = response.data.data.filter(
-                (product) => product.id == '67271259e6b9cf8cea03926e',
-            );
+
+            Logger.debug('Printful API Response:');
+            console.log(JSON.stringify(productDetails.data, null, 2));
 
             const productObj = {
-                id: product.id,
-                title: product.title,
-                options: product.options,
-                description: product.description,
-                variants: product.variants,
-                images: product.images,
+                variants: productDetails.data.result.sync_variants,
             };
-
-            productObj.variants = productObj.variants.reduce((acc, variant) => {
-                if (variant.options.includes(521)) {
-                    acc.push({
-                        id: variant.id,
-                        title: variant.title,
-                        options: variant.options,
-                        price: variant.price,
-                        sku: variant.sku,
-                    });
-                }
-                return acc;
-            }, []);
-
-            productObj.options = productObj.options.filter((option) => {
-                if (option.type == 'size') {
-                    return true;
-                }
-                if (option.type == 'color') {
-                    option.values = option.values.filter((value) => {
-                        if (value.id == 521) {
-                            return true;
-                        }
-                        return false;
-                    });
-                    return {
-                        name: option.name,
-                        type: option.type,
-                        values: option.values,
-                    };
-                }
-            });
 
             return productObj;
         } catch (error) {
@@ -459,59 +423,104 @@ export class PrintifyService {
 
     async calculateShipping(data: CalculateShippingDto): Promise<any> {
         try {
-            Logger.debug('Calculating shipping costs...', 'PrintifyService');
-            Logger.debug(`Shop ID: ${this.shopId}`, 'PrintifyService');
+            Logger.debug('Calculating shipping costs...', 'PrintfulService');
+            if (
+                !data.recipient.state_code ||
+                data.recipient.state_code.trim() === ''
+            ) {
+                console.error(
+                    '🚨 ERROR: state_code está vacío o no es válido:',
+                    data.recipient.state_code,
+                );
+                throw new Error(
+                    '🚨 ERROR: state_code está vacío o no es válido.',
+                );
+            }
 
-            const endpoint = `${this.baseUrl}/shops/${this.shopId}/orders/shipping.json`;
+            if (!data.recipient.zip || data.recipient.zip.trim() === '') {
+                console.error(
+                    '🚨 ERROR: zip está vacío o no es válido:',
+                    data.recipient.zip,
+                );
+                throw new Error('🚨 ERROR: zip está vacío o no es válido.');
+            }
 
-            // Format the request body according to Printify's API
+            const validItems = data.items.filter(
+                (item) => item.variant_id && Number(item.variant_id) > 0,
+            );
+            if (validItems.length === 0) {
+                console.error(
+                    '🚨 ERROR: Todos los `variant_id` son inválidos:',
+                    data.items,
+                );
+                throw new Error(
+                    '🚨 ERROR: `variant_id` inválidos o faltantes.',
+                );
+            }
+
             const requestBody = {
-                address_to: {
-                    email: data.address_to.email,
-                    first_name: data.address_to.first_name,
-                    last_name: data.address_to.last_name,
-                    address1: data.address_to.address1,
-                    city: data.address_to.city,
-                    state: data.address_to.state,
-                    zip: data.address_to.zip,
-                    country: data.address_to.country,
-                    phone: data.address_to.phone,
+                recipient: {
+                    name: `${data.recipient.first_name} ${data.recipient.last_name}`,
+                    address1: data.recipient.address1,
+                    city: data.recipient.city,
+                    state_code: data.recipient.state_code.trim(),
+                    country_code: data.recipient.country.trim().toUpperCase(),
+                    zip: data.recipient.zip.trim(),
+                    phone: data.recipient.phone,
+                    email: data.recipient.email,
                 },
-                line_items: data.line_items.map((item) => ({
-                    product_id: item.product_id,
-                    variant_id: item.variant_id,
+                items: validItems.map((item) => ({
                     quantity: item.quantity,
+                    variant_id: item.variant_id,
                 })),
             };
 
-            Logger.debug(`Sending request to ${endpoint}`, 'PrintifyService');
-            Logger.debug(
-                `Request body: ${JSON.stringify(requestBody)}`,
-                'PrintifyService',
-            );
+            const headers = {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${this.apiKey}`, // Use this.apiKey instead of process.env
+            };
 
-            const response = await axios.post(endpoint, requestBody, {
-                headers: this.headers,
-            });
+            try {
+                const response = await axios.post(
+                    `${this.baseUrl}/shipping/rates`,
+                    requestBody,
+                    { headers },
+                );
 
-            Logger.debug(
-                'Shipping calculation response received',
-                'PrintifyService',
-            );
-            Logger.debug(
-                `Response: ${JSON.stringify(response.data)}`,
-                'PrintifyService',
-            );
+                if (!response.data || !response.data.result) {
+                    throw new Error('Respuesta inválida de Printful.');
+                }
 
-            // Response will contain available shipping methods and their costs
-            return response.data;
+                const shippingRates = response.data.result;
+                if (!shippingRates || shippingRates.length === 0) {
+                    throw new Error('No se encontraron tarifas de envío.');
+                }
+
+                const selectedRate =
+                    shippingRates.find((rate) =>
+                        rate.id.toUpperCase().includes('STANDARD'),
+                    ) || shippingRates[0];
+
+                Logger.debug('✅ Tarifa de envío seleccionada:', selectedRate);
+                return selectedRate.rate;
+            } catch (apiError) {
+                console.log(apiError);
+                Logger.error(
+                    'Printful API error response:',
+                    apiError.response?.data || apiError.message,
+                );
+                if (apiError.response) {
+                    throw new Error(
+                        `Printful API error: ${JSON.stringify(apiError.response.data)}`,
+                    );
+                }
+                throw apiError;
+            }
         } catch (error) {
-            Logger.error('Failed to calculate shipping:', error);
-            Logger.error('Error details:', error.response?.data);
-
+            Logger.error('Shipping calculation failed:', error.message);
             throw new HttpException(
-                `Failed to calculate shipping: ${error.response?.data?.message || error.message}`,
-                error.response?.status || HttpStatus.INTERNAL_SERVER_ERROR,
+                `Failed to calculate shipping: ${error.message}`,
+                HttpStatus.INTERNAL_SERVER_ERROR,
             );
         }
     }
