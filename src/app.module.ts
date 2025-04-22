@@ -11,7 +11,6 @@ import { UserController } from './user/user.controller';
 import { PrintfulModule } from './printful/printful.module';
 import { CheckoutModule } from './checkout/checkout.module';
 import { EmailModule } from './email/email.module';
-import { PrintifyModule } from './printify/printify.module';
 @Module({
     imports: [
         PrismaModule,
@@ -20,7 +19,6 @@ import { PrintifyModule } from './printify/printify.module';
         ActivationModule,
         AuthModule,
         PrintfulModule,
-        PrintifyModule,
         EmailModule,
     ],
     controllers: [AppController, UserController],
