@@ -26,6 +26,7 @@ export interface NewOrder {
         id: string;
         variant_id: number;
         quantity: number;
+        uploadedImageUrl?: string;
     }>;
 }
 @Injectable()
@@ -125,7 +126,18 @@ export class PrintfulService {
         }
     }
 
-    // ToDo , update params DTO to fit the printful create order
+    async testImageGeneration() {
+        const qrCodeBuffer = await this.generateQRCode(
+            'https://qrific.me/12341-12341234-12341234',
+        );
+        const combinedTemplate = await createCombinedTemplate(qrCodeBuffer);
+        // Upload the unique design for this item
+        const uploadedImageUrl = await this.uploadDesign(
+            combinedTemplate,
+            '12341-12341234-12341234',
+        );
+        return uploadedImageUrl;
+    }
 
     async createOrder(newOrder: NewOrder): Promise<any> {
         try {
@@ -217,12 +229,58 @@ export class PrintfulService {
             console.log('Original Order Request:', newOrder);
             console.log('Processed Items with QR codes:', processedItems);
 
-            // Return the array of processed items
-            // You might want to include other order details here as well
+            // Construct the Printful order payload
+            const printfulOrderPayload = {
+                recipient: {
+                    name: newOrder.recipient.name,
+                    address1: newOrder.recipient.address1,
+                    city: newOrder.recipient.city,
+                    state_code: newOrder.recipient.state_code,
+                    country_code: newOrder.recipient.country_code,
+                    zip: newOrder.recipient.zip,
+                    phone: newOrder.recipient.phone,
+                    email: newOrder.recipient.email,
+                },
+                items: processedItems
+                    .filter((item) => 'uploadedImageUrl' in item) // Filter out items that failed processing
+                    .map((item) => ({
+                        variant_id: item.variant_id,
+                        quantity: item.quantity,
+                        files: [
+                            {
+                                type: 'back', // Assuming the QR code goes on the back
+                                url: item.uploadedImageUrl,
+                            },
+                        ],
+                    })),
+                // Add other necessary fields like retail_costs, gift, packing_slip etc. if needed
+            };
+
+            // Make the API call to Printful to create the order
+            console.log('Submitting order to Printful...');
+            const printfulResponse = await axios.post(
+                `${this.baseUrl}/orders`,
+                printfulOrderPayload,
+                { headers: this.headers },
+            );
+
+            console.log(
+                'Printful order creation response:',
+                printfulResponse.data,
+            );
+
+            // Optionally, update the order in your DB with the Printful order ID
+            await this.prisma.order.update({
+                where: { id: newOrder.orderId },
+                data: {
+                    printfulOrderId: String(printfulResponse.data.result.id),
+                }, // Assuming the ID is a number
+            });
+
+            // Return the array of processed items and the Printful order details
             return {
-                // You could add an orderId here if generated or passed in
-                // orderId: newOrder.orderId || generatedOrderId,
-                items: processedItems,
+                processedItems: processedItems,
+                printfulOrder: printfulResponse.data.result,
             };
         } catch (error) {
             // Log the detailed error

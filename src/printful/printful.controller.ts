@@ -38,4 +38,9 @@ export class PrintfulController {
     async calculateShipping(@Body() data: CalculateShippingDto) {
         return this.printfulService.calculateShipping(data);
     }
+
+    @Get('test-image-generation')
+    async testImageGeneration() {
+        return this.printfulService.testImageGeneration();
+    }
 }

@@ -39,6 +39,7 @@ model Order {
   items            OrderItem[]
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
+  printfulOrderId  String?
 }
 
 model OrderItem {
