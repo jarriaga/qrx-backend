@@ -157,7 +157,7 @@ export class PrintfulService {
                 newOrder.items.map(async (item) => {
                     // Generate unique IDs and URLs for each item
                     const itemQrCodeId = uuidv4();
-                    const itemQrCodeUrl = `${this.configService.get('STORE_URL')}/item/${itemQrCodeId}`; // Example URL structure
+                    const itemQrCodeUrl = `${this.configService.get('STORE_URL')}/qr/${itemQrCodeId}`; // Example URL structure
 
                     // Generate QR code for the item
                     const qrCodeBuffer =
