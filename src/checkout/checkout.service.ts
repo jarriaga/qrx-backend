@@ -335,7 +335,9 @@ export class CheckoutService {
 
             const { rate: taxRate, name: taxName } =
                 this.calculateTaxRate('TX');
-            const taxAmount = Math.round(verifiedSubtotal * taxRate);
+            const taxAmount = Math.round(
+                (verifiedSubtotal + verifiedShipping) * taxRate,
+            );
 
             Logger.debug('Tax calculation (cents):', {
                 state: createOrderDto.address.state,
@@ -370,7 +372,7 @@ export class CheckoutService {
         const TAX_RATES = {
             CA: { rate: 0.0725, name: 'CA Sales Tax' },
             NY: { rate: 0.04, name: 'NY Sales Tax' },
-            TX: { rate: 0.0625, name: 'TX Sales Tax' },
+            TX: { rate: 0.0825, name: 'TX Sales Tax' },
         };
 
         return TAX_RATES[state] || { rate: 0, name: 'No Tax' };

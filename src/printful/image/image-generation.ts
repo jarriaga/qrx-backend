@@ -82,17 +82,17 @@ export async function createCombinedTemplate(qrCodeBuffer: Buffer) {
         ctx.fillStyle = '#000000';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
-        ctx.fillText('SCAN ME!', width / 2, 130);
+        ctx.fillText('SCAN ME!', width / 2, 240);
 
         // Position and draw images
         // Top M-shape
-        const mshapeY = 50;
+        const mshapeY = 200;
         ctx.drawImage(
             topMshapeImage,
-            (width - topMshapeImage.width) / 2,
+            (width - topMshapeImage.width / 1.3) / 2,
             mshapeY,
-            topMshapeImage.width,
-            topMshapeImage.height,
+            topMshapeImage.width / 1.3,
+            topMshapeImage.height / 1.3,
         );
 
         // QR Code frame corners
@@ -121,13 +121,13 @@ export async function createCombinedTemplate(qrCodeBuffer: Buffer) {
         );
 
         // QR Code
-        const qrCodeY = 320;
+        const qrCodeY = 420;
         ctx.drawImage(
             qrCodeImage,
-            (width - qrCodeImage.width) / 2,
+            (width - qrCodeImage.width / 1.3) / 2,
             qrCodeY,
-            qrCodeImage.width,
-            qrCodeImage.height,
+            qrCodeImage.width / 1.3,
+            qrCodeImage.height / 1.3,
         );
 
         // Save the combined image
