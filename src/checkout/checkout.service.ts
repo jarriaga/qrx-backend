@@ -5,7 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { customAlphabet } from 'nanoid';
 import { EmailService } from 'src/email/email.service';
-import { PrintfulService } from 'src/printful/printful.service';
+import { NewOrder, PrintfulService } from 'src/printful/printful.service';
 @Injectable()
 export class CheckoutService {
     private stripe: Stripe;
@@ -70,7 +70,7 @@ export class CheckoutService {
             });
 
             const order = await this.prisma.$transaction(async (prisma) => {
-                const order = await prisma.order.create({
+                const newOrder = await prisma.order.create({
                     data: {
                         orderNumber,
                         email: createOrderDto.address.email,
@@ -105,7 +105,7 @@ export class CheckoutService {
                     },
                 });
 
-                return order;
+                return newOrder;
             });
 
             return {
@@ -366,5 +366,73 @@ export class CheckoutService {
         };
 
         return TAX_RATES[state] || { rate: 0, name: 'No Tax' };
+    }
+
+    async createOrder(paymentIntentId: string) {
+        try {
+            const order = await this.prisma.order.findFirst({
+                where: { paymentIntentId },
+                include: { items: true },
+            });
+
+            if (!order) {
+                throw new Error('Order not found');
+            }
+
+            //iterate over order.items and create the order json for printful
+            // {
+            //     "recipient": {
+            //         "name": "recipients name",
+            //         "address1": "12 address avenue, Bankstown",
+            //         "city": "Sydney",
+            //         "state_code": "NSW",
+            //         "country_code": "AU",
+            //         "zip": "2200"
+            //     },
+            //     "items": [
+            //         {
+            //             "variant_id": 11513,
+            //             "quantity": 1,
+            //             "files": [
+            //                 {
+            //                     "url": "http://example.com/files/posters/poster_1.jpg"
+            //                 }
+            //             ]
+            //         }
+            //     ]
+            // }
+
+            // modify the items to set individual QR codes for each item even when
+            // the variant is the same but quantity more than 1 in order to print multiple QR codes per product/variant
+            const orderObject: NewOrder = {
+                recipient: {
+                    name: `${order.firstName} ${order.lastName}`,
+                    address1: order.address,
+                    city: order.city,
+                    state_code: order.state,
+                    country_code: order.country,
+                    zip: order.zipCode,
+                    phone: order.phone,
+                    email: order.email,
+                },
+                items: order.items.flatMap((item) => {
+                    const items = [];
+                    for (let i = 0; i < item.quantity; i++) {
+                        items.push({
+                            variant_id: item.variantId,
+                            quantity: 1,
+                        });
+                    }
+                    return items;
+                }),
+            };
+
+            const printfulOrder =
+                await this.printfulService.createOrder(orderObject);
+
+            return printfulOrder;
+        } catch (error) {
+            throw new Error(`Error creating order: ${error.message}`);
+        }
     }
 }

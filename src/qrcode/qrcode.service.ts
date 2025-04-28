@@ -24,9 +24,7 @@ export class QrcodeService {
     ) {
         const qrcode = await this.prismaService.qrcode.findFirst({
             where: {
-                activationCode,
-                shirtId,
-                purchased: true,
+                urlCode: activationCode,
                 activated: false,
             },
             include: {

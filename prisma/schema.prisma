@@ -84,19 +84,16 @@ model Design {
 
 //current T-shirt QR code
 model Qrcode {
-  id             String   @id @default(uuid())
-  shirtId        String   @unique
-  urlCode        String?
-  user           User?    @relation(fields: [userId], references: [id])
-  userId         String?
-  type           QrType   @default(TEXT)
-  html           String?
-  data           String?
-  activationCode String   @unique //unique pin code for the qr code and web page for message
-  purchased      Boolean  @default(false) //if the tshirt has been purchased
-  activated      Boolean  @default(false) //if the tshirt has been activated
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id        String   @id @default(uuid())
+  urlCode   String?
+  user      User?    @relation(fields: [userId], references: [id])
+  userId    String?
+  type      QrType   @default(TEXT)
+  html      String?
+  data      String? // this additional data for the html page or any parameter needed, it might not be used
+  activated Boolean  @default(false) //if the tshirt has been activated
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 enum QrType {

@@ -47,4 +47,9 @@ export class CheckoutController {
             request.rawBody,
         );
     }
+
+    @Post('create-order')
+    createOrder(@Body('paymentIntentId') paymentIntentId: string) {
+        return this.checkoutService.createOrder(paymentIntentId);
+    }
 }
