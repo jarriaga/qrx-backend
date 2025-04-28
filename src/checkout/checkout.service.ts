@@ -90,14 +90,22 @@ export class CheckoutService {
                         total: verifiedTotal,
                         paymentIntentId: paymentIntent.id,
                         items: {
-                            create: createOrderDto.items.map((item) => ({
-                                productId: item.product.id,
-                                productTitle: item.product.title,
-                                variantId: item.variant.id.toString(),
-                                variantTitle: item.variant.title,
-                                price: item.variant.price,
-                                quantity: item.quantity,
-                            })),
+                            create: createOrderDto.items.flatMap((item) => {
+                                // Create an array to hold the individual item records
+                                const individualItems = [];
+                                // Loop 'quantity' times to create separate records
+                                for (let i = 0; i < item.quantity; i++) {
+                                    individualItems.push({
+                                        productId: item.product.id,
+                                        productTitle: item.product.title,
+                                        variantId: item.variant.id.toString(),
+                                        variantTitle: item.variant.title,
+                                        price: item.variant.price,
+                                        quantity: 1, // Set quantity to 1 for each individual record
+                                    });
+                                }
+                                return individualItems;
+                            }),
                         },
                     },
                     include: {
@@ -405,6 +413,7 @@ export class CheckoutService {
             // modify the items to set individual QR codes for each item even when
             // the variant is the same but quantity more than 1 in order to print multiple QR codes per product/variant
             const orderObject: NewOrder = {
+                orderId: order.id,
                 recipient: {
                     name: `${order.firstName} ${order.lastName}`,
                     address1: order.address,
@@ -419,6 +428,7 @@ export class CheckoutService {
                     const items = [];
                     for (let i = 0; i < item.quantity; i++) {
                         items.push({
+                            id: item.id,
                             variant_id: item.variantId,
                             quantity: 1,
                         });

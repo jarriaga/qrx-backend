@@ -11,6 +11,7 @@ import { QrType } from '@prisma/client';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { createCombinedTemplate } from './image/image-generation';
 export interface NewOrder {
+    orderId?: string;
     recipient: {
         name: string;
         address1: string;
@@ -22,6 +23,7 @@ export interface NewOrder {
         email: string;
     };
     items: Array<{
+        id: string;
         variant_id: number;
         quantity: number;
     }>;
@@ -127,52 +129,120 @@ export class PrintfulService {
 
     async createOrder(newOrder: NewOrder): Promise<any> {
         try {
-            //generate UUID QR code
-            const qrCodeId = uuidv4();
-            //generate QR code url
-            const qrCodeUrl = `${this.configService.get('STORE_URL')}/${qrCodeId}`;
-            // Generate and upload new QR code
-            const qrCodeBuffer = await this.generateQRCode(qrCodeUrl);
-            //TODO
-            //append the QR image to the T-shirt image
-            const combinedTemplate = await createCombinedTemplate(qrCodeBuffer);
-            if (!combinedTemplate || combinedTemplate.length === 0) {
-                throw new Error('Failed to generate combined template');
+            //check if order has qr code generated
+            const order = await this.prisma.order.findUnique({
+                where: { id: newOrder.orderId },
+            });
+
+            if (order.qrCodeGenerated) {
+                throw new HttpException(
+                    'QR code already generated',
+                    HttpStatus.BAD_REQUEST,
+                );
             }
-            //upload to S3
-            const uploadedImageUrl = await this.uploadDesign(
-                combinedTemplate,
-                qrCodeId,
+
+            const processedItems = await Promise.all(
+                newOrder.items.map(async (item) => {
+                    // Generate unique IDs and URLs for each item
+                    const itemQrCodeId = uuidv4();
+                    const itemQrCodeUrl = `${this.configService.get('STORE_URL')}/item/${itemQrCodeId}`; // Example URL structure
+
+                    // Generate QR code for the item
+                    const qrCodeBuffer =
+                        await this.generateQRCode(itemQrCodeUrl);
+
+                    // Combine with template
+                    const combinedTemplate =
+                        await createCombinedTemplate(qrCodeBuffer);
+                    if (!combinedTemplate || combinedTemplate.length === 0) {
+                        // Handle error for this specific item, maybe log and skip or throw
+                        console.error(
+                            `Failed to generate combined template for item variant ${item.variant_id}`,
+                        );
+                        // Depending on requirements, you might want to return an error marker or throw
+                        return {
+                            ...item,
+                            error: 'Failed to generate template',
+                        };
+                    }
+
+                    // Upload the unique design for this item
+                    const uploadedImageUrl = await this.uploadDesign(
+                        combinedTemplate,
+                        itemQrCodeId,
+                    );
+
+                    // Create QR code record in DB for this item
+                    const qrCode = await this.prisma.qrcode.create({
+                        data: {
+                            id: itemQrCodeId,
+                            urlCode: itemQrCodeUrl,
+                            type: QrType.TEXT, // Or potentially a different type if needed
+                            orderItemId: item.id,
+                            // Consider adding orderId or orderItemId if your schema supports it
+                        },
+                    });
+
+                    console.log(
+                        `QR Code created for item variant ${item.variant_id}:`,
+                        qrCode,
+                    );
+                    console.log(
+                        `Uploaded image URL for item variant ${item.variant_id}:`,
+                        uploadedImageUrl,
+                    );
+
+                    //update order item with qr code id
+                    await this.prisma.orderItem.update({
+                        where: { id: item.id },
+                        data: { qrCodeId: itemQrCodeId },
+                    });
+
+                    // Return the original item data augmented with QR info
+                    return {
+                        ...item,
+                        qrCodeId: itemQrCodeId,
+                        qrCodeUrl: itemQrCodeUrl,
+                        uploadedImageUrl: uploadedImageUrl,
+                    };
+                }),
             );
 
-            //create qr code in db
-            const qrCode = await this.prisma.qrcode.create({
-                data: {
-                    id: qrCodeId,
-                    urlCode: qrCodeUrl,
-                    type: QrType.TEXT,
-                },
+            //update order status to qr code generated
+            await this.prisma.order.update({
+                where: { id: newOrder.orderId },
+                data: { qrCodeGenerated: true },
             });
 
-            console.log('QR Code created:', qrCode);
-            console.log('Uploaded image URL:', uploadedImageUrl);
-            console.log('New Order:', newOrder);
+            console.log('Original Order Request:', newOrder);
+            console.log('Processed Items with QR codes:', processedItems);
 
+            // Return the array of processed items
+            // You might want to include other order details here as well
             return {
-                qrCodeId,
-                qrCodeUrl,
-                uploadedImageUrl,
+                // You could add an orderId here if generated or passed in
+                // orderId: newOrder.orderId || generatedOrderId,
+                items: processedItems,
             };
         } catch (error) {
-            console.error('Order creation error:', {
+            // Log the detailed error
+            console.error('Order creation process error:', {
                 message: error.message,
-                response: error.response?.data,
-                status: error.response?.status,
+                stack: error.stack,
+                // Include request details if helpful and safe
+                // requestBody: JSON.stringify(newOrder)
             });
 
+            // Determine appropriate HTTP status based on the error if possible
+            let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+            if (error instanceof HttpException) {
+                statusCode = error.getStatus();
+            }
+
+            // Re-throw a structured error
             throw new HttpException(
-                `Failed to create order: ${error.response?.data?.message || error.message}`,
-                error.response?.status || HttpStatus.INTERNAL_SERVER_ERROR,
+                `Failed to process order items: ${error.message}`,
+                statusCode,
             );
         }
     }

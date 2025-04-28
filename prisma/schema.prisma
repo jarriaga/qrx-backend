@@ -33,6 +33,7 @@ model Order {
   taxRate          Float       @default(0)
   total            Int
   status           String      @default("pending")
+  qrCodeGenerated  Boolean     @default(false) // this is used to check if the QR code has been generated and do not generate more for the same order
   paymentIntentId  String      @unique
   stripeCustomerId String?
   items            OrderItem[]
@@ -52,6 +53,8 @@ model OrderItem {
   quantity     Int
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  qrCodeId     String?  @unique
+  qrCode       Qrcode?
 }
 
 model User {
@@ -84,16 +87,18 @@ model Design {
 
 //current T-shirt QR code
 model Qrcode {
-  id        String   @id @default(uuid())
-  urlCode   String?
-  user      User?    @relation(fields: [userId], references: [id])
-  userId    String?
-  type      QrType   @default(TEXT)
-  html      String?
-  data      String? // this additional data for the html page or any parameter needed, it might not be used
-  activated Boolean  @default(false) //if the tshirt has been activated
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String     @id @default(uuid())
+  urlCode     String?
+  user        User?      @relation(fields: [userId], references: [id])
+  userId      String?
+  type        QrType     @default(TEXT)
+  html        String?
+  data        String?
+  activated   Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  orderItem   OrderItem? @relation(fields: [orderItemId], references: [id])
+  orderItemId String?    @unique
 }
 
 enum QrType {
