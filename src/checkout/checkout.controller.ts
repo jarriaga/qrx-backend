@@ -1,11 +1,4 @@
-import {
-    Controller,
-    Post,
-    Body,
-    Headers,
-    RawBodyRequest,
-    Req,
-} from '@nestjs/common';
+import { Controller, Post, Body } from '@nestjs/common';
 import { CheckoutService } from './checkout.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { ApiTags } from '@nestjs/swagger';
@@ -22,7 +15,7 @@ export class CheckoutController {
 
     @Post('order-information')
     getOrder(@Body('paymentIntentId') paymentIntentId: string) {
-        return this.checkoutService.getOrderSecure(paymentIntentId);
+        return this.checkoutService.getOrderInformation(paymentIntentId);
     }
 
     @Post('order-status')
@@ -33,20 +26,20 @@ export class CheckoutController {
         return this.checkoutService.getOrderStatus(email, orderNumber);
     }
 
-    @Post('webhook')
-    handleWebhook(
-        @Headers('stripe-signature') signature: string,
-        @Req() request: RawBodyRequest<Request>,
-    ) {
-        if (!request.rawBody) {
-            throw new Error('No webhook payload received');
-        }
+    // @Post('webhook')
+    // handleWebhook(
+    //     @Headers('stripe-signature') signature: string,
+    //     @Req() request: RawBodyRequest<Request>,
+    // ) {
+    //     if (!request.rawBody) {
+    //         throw new Error('No webhook payload received');
+    //     }
 
-        return this.checkoutService.handleStripeWebhook(
-            signature,
-            request.rawBody,
-        );
-    }
+    //     return this.checkoutService.handleStripeWebhook(
+    //         signature,
+    //         request.rawBody,
+    //     );
+    // }
 
     @Post('create-order')
     createOrder(@Body('paymentIntentId') paymentIntentId: string) {

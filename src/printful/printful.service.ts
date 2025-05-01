@@ -12,6 +12,9 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { createCombinedTemplate } from './image/image-generation';
 export interface NewOrder {
     orderId?: string;
+    orderNumber?: string;
+    paymentIntentId?: string;
+    qrCodeGenerated?: boolean;
     recipient: {
         name: string;
         address1: string;
@@ -139,14 +142,10 @@ export class PrintfulService {
         return uploadedImageUrl;
     }
 
-    async createOrder(newOrder: NewOrder): Promise<any> {
+    async createOrderOnPrintful(newOrder: NewOrder): Promise<any> {
+        Logger.debug('Creating order with QR codes...', 'PrintfulService');
         try {
-            //check if order has qr code generated
-            const order = await this.prisma.order.findUnique({
-                where: { id: newOrder.orderId },
-            });
-
-            if (order.qrCodeGenerated) {
+            if (newOrder.qrCodeGenerated) {
                 throw new HttpException(
                     'QR code already generated',
                     HttpStatus.BAD_REQUEST,
@@ -256,7 +255,6 @@ export class PrintfulService {
                 // Add other necessary fields like retail_costs, gift, packing_slip etc. if needed
             };
 
-            // Make the API call to Printful to create the order
             console.log('Submitting order to Printful...');
             const printfulResponse = await axios.post(
                 `${this.baseUrl}/orders`,
@@ -269,10 +267,10 @@ export class PrintfulService {
                 printfulResponse.data,
             );
 
-            // Optionally, update the order in your DB with the Printful order ID
             await this.prisma.order.update({
                 where: { id: newOrder.orderId },
                 data: {
+                    status: 'paid',
                     printfulOrderId: String(printfulResponse.data.result.id),
                 }, // Assuming the ID is a number
             });
@@ -283,21 +281,16 @@ export class PrintfulService {
                 printfulOrder: printfulResponse.data.result,
             };
         } catch (error) {
-            // Log the detailed error
             console.error('Order creation process error:', {
                 message: error.message,
                 stack: error.stack,
-                // Include request details if helpful and safe
-                // requestBody: JSON.stringify(newOrder)
             });
 
-            // Determine appropriate HTTP status based on the error if possible
             let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
             if (error instanceof HttpException) {
                 statusCode = error.getStatus();
             }
 
-            // Re-throw a structured error
             throw new HttpException(
                 `Failed to process order items: ${error.message}`,
                 statusCode,

@@ -130,26 +130,18 @@ export class CheckoutService {
         }
     }
 
-    async confirmOrder(paymentIntentId: string) {
+    async confirmOrder(order: NewOrder) {
         try {
-            const order = await this.prisma.order.findUnique({
-                where: { paymentIntentId },
-                include: { items: true },
-            });
-
-            if (!order) {
-                throw new Error('Order not found');
-            }
-
-            const paymentIntent =
-                await this.stripe.paymentIntents.retrieve(paymentIntentId);
+            const paymentIntent = await this.stripe.paymentIntents.retrieve(
+                order.paymentIntentId,
+            );
 
             if (paymentIntent.status === 'succeeded') {
-                Logger.debug('New payment intent succeeded');
-                Logger.debug(paymentIntentId);
+                Logger.debug('payment intent succeeded');
+                Logger.debug(order.paymentIntentId);
 
                 const updatedOrder = await this.prisma.order.update({
-                    where: { id: order.id },
+                    where: { id: order.orderId },
                     data: { status: 'paid' },
                     include: { items: true },
                 });
@@ -174,7 +166,7 @@ export class CheckoutService {
         }
     }
 
-    async getOrderSecure(paymentIntentId: string) {
+    async getOrderInformation(paymentIntentId: string) {
         try {
             const order = await this.prisma.order.findFirst({
                 where: {
@@ -193,34 +185,6 @@ export class CheckoutService {
             return order;
         } catch (error) {
             throw new Error(`Error fetching order: ${error.message}`);
-        }
-    }
-
-    async handleStripeWebhook(signature: string, payload: Buffer) {
-        try {
-            Logger.log('Received webhook event', 'CheckoutService');
-            const event = this.stripe.webhooks.constructEvent(
-                payload,
-                signature,
-                this.configService.get('STRIPE_WEBHOOK_SECRET'),
-            );
-            Logger.debug('Event Type: ' + event.type, 'CheckoutService');
-
-            switch (event.type) {
-                case 'payment_intent.succeeded':
-                    await this.confirmOrder(event.data.object.id);
-                    break;
-                case 'payment_intent.payment_failed':
-                    await this.prisma.order.update({
-                        where: { paymentIntentId: event.data.object.id },
-                        data: { status: 'failed' },
-                    });
-                    break;
-            }
-
-            return { received: true };
-        } catch (error) {
-            throw new Error(`Webhook Error: ${error.message}`);
         }
     }
 
@@ -389,33 +353,11 @@ export class CheckoutService {
                 throw new Error('Order not found');
             }
 
-            //iterate over order.items and create the order json for printful
-            // {
-            //     "recipient": {
-            //         "name": "recipients name",
-            //         "address1": "12 address avenue, Bankstown",
-            //         "city": "Sydney",
-            //         "state_code": "NSW",
-            //         "country_code": "AU",
-            //         "zip": "2200"
-            //     },
-            //     "items": [
-            //         {
-            //             "variant_id": 11513,
-            //             "quantity": 1,
-            //             "files": [
-            //                 {
-            //                     "url": "http://example.com/files/posters/poster_1.jpg"
-            //                 }
-            //             ]
-            //         }
-            //     ]
-            // }
-
-            // modify the items to set individual QR codes for each item even when
-            // the variant is the same but quantity more than 1 in order to print multiple QR codes per product/variant
             const orderObject: NewOrder = {
                 orderId: order.id,
+                qrCodeGenerated: order.qrCodeGenerated,
+                paymentIntentId: order.paymentIntentId,
+                orderNumber: order.orderNumber,
                 recipient: {
                     name: `${order.firstName} ${order.lastName}`,
                     address1: order.address,
@@ -439,10 +381,11 @@ export class CheckoutService {
                 }),
             };
 
-            const printfulOrder =
-                await this.printfulService.createOrder(orderObject);
+            await this.printfulService.createOrderOnPrintful(orderObject);
 
-            return printfulOrder;
+            const confirmedOrder = await this.confirmOrder(orderObject);
+
+            return confirmedOrder;
         } catch (error) {
             throw new Error(`Error creating order: ${error.message}`);
         }
