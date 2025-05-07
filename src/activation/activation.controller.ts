@@ -1,7 +1,6 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { ActivationService } from './activation.service';
 import { ApiTags } from '@nestjs/swagger';
-import { ValidateActivationCodeDto } from './dto/validateActivationCode.dto';
 import { ActivationDto } from './dto/activation.dto';
 
 @ApiTags('activation')
@@ -9,19 +8,13 @@ import { ActivationDto } from './dto/activation.dto';
 export class ActivationController {
     constructor(private readonly activationService: ActivationService) {}
 
-    @Post('/validate')
-    async validateActivationCode(
-        @Body() validateActivationCodeDto: ValidateActivationCodeDto,
-    ) {
-        return this.activationService.validateActivationCode(
-            validateActivationCodeDto,
-        );
+    @Post('/create-user-with-qrcode')
+    async createUserWithQrcode(@Body() activationDto: ActivationDto) {
+        return this.activationService.createUserWithQrcode(activationDto);
     }
 
-    @Post('/create-user')
-    async activateQrCodeAndCreateQuser(@Body() activationDto: ActivationDto) {
-        return this.activationService.activateQrCodeAndCreateQuser(
-            activationDto,
-        );
-    }
+    // @Post('/add-qrcode-to-user')
+    // async addQrcodeToUser(@Body() addQrcodeToUserDto: AddQrcodeToUserDto) {
+    //     return this.activationService.addQrcodeToUser(addQrcodeToUserDto);
+    // }
 }

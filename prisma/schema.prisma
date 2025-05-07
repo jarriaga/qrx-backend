@@ -70,6 +70,13 @@ model User {
   smsCode   String?
   Qrcodes   Qrcode[]
   Designs   Design[]
+  isActive  Boolean  @default(true)
+  role      Role     @default(USER)
+}
+
+enum Role {
+  USER
+  ADMIN
 }
 
 //multiple design per Quser, it can be stored and assigned to the QR tshirt 

@@ -59,4 +59,10 @@ export class QrcodeService {
             isActivated: details.activated,
         };
     }
+
+    async findQrcodeById(qrId: string) {
+        return this.prismaService.qrcode.findUnique({
+            where: { id: qrId },
+        });
+    }
 }

@@ -1,19 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import {
-    IsEmail,
-    IsNotEmpty,
-    IsString,
-} from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
 
 export class ActivationDto {
     @ApiProperty()
     @IsString()
-    activationCode: string;
-
-    @ApiProperty()
-    @IsString()
-    shirtId: string;
+    qrcodeId: string;
 
     @ApiProperty()
     @IsEmail()

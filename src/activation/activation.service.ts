@@ -3,8 +3,6 @@ import {
     Logger,
     UnprocessableEntityException,
 } from '@nestjs/common';
-import { ValidateActivationCodeDto } from './dto/validateActivationCode.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
 import { ActivationDto } from './dto/activation.dto';
 import { AuthService } from 'src/auth/auth.service';
 import { UserService } from 'src/user/user.service';
@@ -20,42 +18,31 @@ export class ActivationService {
         private readonly userService: UserService,
         private readonly qrCodeService: QrcodeService,
     ) {}
-    /**
-     *
-     * just validate if activation code is valid or not
-     * @param dto
-     * @returns
-     */
-    async validateActivationCode(dto: ValidateActivationCodeDto) {
-        const { activationCode, shirtId } = dto;
-        const qrcode =
-            await this.qrCodeService.findQrcodeNotActivatedAndPurchased(
-                activationCode,
-                shirtId,
-            );
-        this.logger.debug(qrcode);
-        return { message: 'valid' };
-    }
 
     /**
      *
-     * activate qrcode and create user
      * @param activationDto
      * @returns
      */
-    async activateQrCodeAndCreateQuser(activationDto: ActivationDto) {
-        const { activationCode, shirtId, email, password } = activationDto;
+    async createUserWithQrcode(activationDto: ActivationDto) {
+        const { qrcodeId, email, password } = activationDto;
 
-        //find qrcode
-        const qrcode =
-            await this.qrCodeService.findQrcodeNotActivatedAndPurchased(
-                activationCode,
-                shirtId,
-            );
+        const qrcode = await this.qrCodeService.findQrcodeById(qrcodeId);
 
-        this.logger.debug(qrcode);
+        this.logger.debug(qrcode, 'QRCODE Found');
+
+        if (!qrcode) {
+            this.logger.error(`QRCODE ${qrcodeId} not found.`);
+            throw new UnprocessableEntityException(`qrcode_not_found`);
+        }
+
+        if (qrcode.activated) {
+            this.logger.error(`QRCODE ${qrcode.id} already activated.`);
+            throw new UnprocessableEntityException(`qrcode_already_activated`);
+        }
 
         const userExists = await this.userService.findUserByEmail(email);
+
         if (userExists) {
             this.logger.error(`User account ${email} already exist.`);
             throw new UnprocessableEntityException(`account_already_taken`);
@@ -69,10 +56,11 @@ export class ActivationService {
             qrcode.id,
         );
 
-        //update qrcode to activated true
+        this.logger.debug(user, 'User created');
+
         await this.qrCodeService.activateQrcode(qrcode.id);
 
-        this.logger.debug(user);
+        this.logger.debug(user, 'Activation success');
 
         return await this.authService.signIn({
             password,

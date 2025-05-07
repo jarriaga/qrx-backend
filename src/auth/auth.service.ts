@@ -3,6 +3,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CredentialsDto } from './dto/credentials.dto';
 import { JwtService } from '@nestjs/jwt';
 import { compare } from 'bcrypt';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
@@ -11,6 +12,7 @@ export class AuthService {
     constructor(
         private readonly prismaService: PrismaService,
         private readonly jwtService: JwtService,
+        private readonly configService: ConfigService,
     ) {}
 
     async signIn(
@@ -18,9 +20,12 @@ export class AuthService {
     ): Promise<{ access_token: string }> {
         const { email, password } = credentialsDto;
 
-        const user = await this.prismaService.user.findUnique({
+        const user = await this.prismaService.user.findFirst({
             where: {
-                email,
+                email: {
+                    equals: email,
+                    mode: 'insensitive',
+                },
             },
         });
 
@@ -40,8 +45,13 @@ export class AuthService {
 
         const payload = { email: user.email, sub: user.id };
 
+        const token = await this.jwtService.signAsync(payload, {
+            expiresIn: this.configService.get('JWT_EXPIRATION_TIME'),
+            secret: this.configService.get('JWT_SECRET'),
+        });
+
         return {
-            access_token: await this.jwtService.signAsync(payload),
+            access_token: token,
         };
     }
 }
