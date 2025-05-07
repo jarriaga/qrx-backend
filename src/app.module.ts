@@ -11,6 +11,7 @@ import { UserController } from './user/user.controller';
 import { PrintfulModule } from './printful/printful.module';
 import { CheckoutModule } from './checkout/checkout.module';
 import { EmailModule } from './email/email.module';
+import { QrcodeModule } from './qrcode/qrcode.module';
 @Module({
     imports: [
         PrismaModule,
@@ -20,6 +21,7 @@ import { EmailModule } from './email/email.module';
         AuthModule,
         PrintfulModule,
         EmailModule,
+        QrcodeModule,
     ],
     controllers: [AppController, UserController],
     providers: [AppService, UserService, QrcodeService],

@@ -1,6 +1,10 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 
+export interface QRCodeDetails {
+    isActivated: boolean;
+}
+
 @Injectable()
 export class QrcodeService {
     private readonly logger = new Logger(QrcodeService.name);
@@ -42,5 +46,17 @@ export class QrcodeService {
         }
 
         return qrcode;
+    }
+
+    async getQRCodeDetails(qrId: string): Promise<QRCodeDetails> {
+        const details = await this.prismaService.qrcode.findUnique({
+            where: { id: qrId },
+        });
+
+        console.log(details);
+
+        return {
+            isActivated: details.activated,
+        };
     }
 }
