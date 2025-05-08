@@ -3,6 +3,9 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
 export interface QRCodeDetails {
     isActivated: boolean;
+    type: string | null;
+    html: string | null;
+    data: string | null;
 }
 
 @Injectable()
@@ -53,10 +56,16 @@ export class QrcodeService {
             where: { id: qrId },
         });
 
-        console.log(details);
+        if (!details) {
+            this.logger.error(`QRCODE ${qrId} not found.`);
+            throw new NotFoundException(`QRCODE ${qrId} not found.`);
+        }
 
         return {
             isActivated: details.activated,
+            type: details.type,
+            html: details.html,
+            data: details.data,
         };
     }
 

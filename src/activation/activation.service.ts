@@ -7,7 +7,7 @@ import { ActivationDto } from './dto/activation.dto';
 import { AuthService } from 'src/auth/auth.service';
 import { UserService } from 'src/user/user.service';
 import { QrcodeService } from 'src/qrcode/qrcode.service';
-import { bcrypt } from 'bcrypt';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class ActivationService {
@@ -25,14 +25,14 @@ export class ActivationService {
      * @returns
      */
     async createUserWithQrcode(activationDto: ActivationDto) {
-        const { qrcodeId, email, password } = activationDto;
+        const { qrId, email, password } = activationDto;
 
-        const qrcode = await this.qrCodeService.findQrcodeById(qrcodeId);
+        const qrcode = await this.qrCodeService.findQrcodeById(qrId);
 
         this.logger.debug(qrcode, 'QRCODE Found');
 
         if (!qrcode) {
-            this.logger.error(`QRCODE ${qrcodeId} not found.`);
+            this.logger.error(`QRCODE ${qrId} not found.`);
             throw new UnprocessableEntityException(`qrcode_not_found`);
         }
 
@@ -42,6 +42,8 @@ export class ActivationService {
         }
 
         const userExists = await this.userService.findUserByEmail(email);
+
+        this.logger.debug(userExists, 'User exists');
 
         if (userExists) {
             this.logger.error(`User account ${email} already exist.`);

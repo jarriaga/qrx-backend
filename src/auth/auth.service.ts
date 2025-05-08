@@ -17,7 +17,7 @@ export class AuthService {
 
     async signIn(
         credentialsDto: CredentialsDto,
-    ): Promise<{ access_token: string }> {
+    ): Promise<{ accessToken: string }> {
         const { email, password } = credentialsDto;
 
         const user = await this.prismaService.user.findFirst({
@@ -51,7 +51,7 @@ export class AuthService {
         });
 
         return {
-            access_token: token,
+            accessToken: token,
         };
     }
 }
