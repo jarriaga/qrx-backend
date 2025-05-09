@@ -100,8 +100,8 @@ model Qrcode {
   user        User?      @relation(fields: [userId], references: [id])
   userId      String?
   type        QrType     @default(TEXT)
-  html        String?
-  data        String?
+  html        String?    @default("Hello World")
+  data        String?    @default("{\"background\":\"linear-gradient(to bottom, #0b1480 0%, #020638 100%)\"}")
   activated   Boolean    @default(false)
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
